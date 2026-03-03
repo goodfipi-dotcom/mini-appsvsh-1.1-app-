@@ -39,7 +39,7 @@
         /* Customer — рабочий процесс: склад, погрузчик, профи за работой */
         .bg-customer {
             background-image: var(--overlay),
-                              url('https://images.unsplash.com/photo-1581090700227-1e37b190418e?q=80&w=2070&auto=format&fit=crop');
+                              url('https://source.unsplash.com/kLWT11x1nnw/2400x1600');
         }
 
         .container { padding: 20px; max-width: 500px; margin: 0 auto; }
@@ -254,25 +254,4 @@
                 const result = await res.json();
 
                 if (res.ok && result.success) {
-                    document.getElementById('order-form').classList.add('hidden');
-                    document.getElementById('order-success').classList.remove('hidden');
-                } else {
-                    btn.disabled = false;
-                    btn.textContent = '🚀 ОТПРАВИТЬ ЗАЯВКУ';
-                    const msg = result.error || 'Не удалось отправить заявку';
-                    errEl.textContent = msg;
-                    errEl.classList.remove('hidden');
-                    tg.showAlert(msg);
-                }
-            } catch (error) {
-                console.error("Ошибка при отправке:", error);
-                btn.disabled = false;
-                btn.textContent = '🚀 ОТПРАВИТЬ ЗАЯВКУ';
-                errEl.textContent = 'Проверьте интернет и попробуйте снова.';
-                errEl.classList.remove('hidden');
-                tg.showAlert("Ошибка соединения. Проверьте интернет.");
-            }
-        }
-    </script>
-</body>
-</html>
+                    document.getElementById
