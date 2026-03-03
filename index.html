@@ -7,18 +7,17 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --neon-blue: #00f2ff;
-            --main-bg: #0a0e1a;
-            --glass-bg: rgba(10, 14, 26, 0.92);
-            --text-color: #ffffff;
-            /* Усиленное затемнение — фон лишь атмосфера, контент на первом плане */
-            --overlay: linear-gradient(rgba(8, 12, 22, 0.82), rgba(8, 12, 22, 0.96));
-            --btn-solid: #1a2f4a;
-            --btn-graphite: #1e293b;
+            /* Цвета: стальной, сланцевый, акцент только точечно */
+            --accent: #38bdf8;
+            --main-bg: #020617;
+            --glass-bg: rgba(15, 23, 42, 0.72);
+            --text-color: #e5e7eb;
+            /* Более мягкое и глубокое затемнение — фон виден, но не отвлекает */
+            --overlay: linear-gradient(rgba(2, 6, 23, 0.78), rgba(2, 6, 23, 0.9));
         }
 
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif; 
             background-color: var(--main-bg);
             background-size: cover;
             background-position: center;
@@ -26,101 +25,104 @@
             color: var(--text-color); 
             margin: 0; padding: 0; min-height: 100vh;
             transition: background 0.8s ease-in-out, background-image 0.8s ease-in-out;
-            font-weight: 700;
-            font-size: 17px;
+            font-weight: 500;
+            font-size: 16px;
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Индустриальный GTA Style — промышленная зона: склады, контейнеры, фура на закате */
+        /* Main menu — индустриальный логистический хаб / контейнерный терминал */
         .bg-main {
             background-image: var(--overlay),
-                              url('https://images.unsplash.com/photo-1605649487212-47bdab064df7?q=80&w=2070&auto=format&fit=crop');
+                              url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=2070&auto=format&fit=crop');
         }
 
-        /* Рабочий процесс: погрузка, склад, в духе GTA V */
+        /* Customer — рабочий процесс: склад, погрузчик, профи за работой */
         .bg-customer {
             background-image: var(--overlay),
-                              url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=2070&auto=format&fit=crop');
+                              url('https://images.unsplash.com/photo-1581090700227-1e37b190418e?q=80&w=2070&auto=format&fit=crop');
         }
 
         .container { padding: 20px; max-width: 500px; margin: 0 auto; }
 
         .card { 
             background: var(--glass-bg); 
-            backdrop-filter: blur(18px);
-            border: 1px solid rgba(0, 242, 255, 0.25);
-            border-radius: 16px; padding: 22px; margin-bottom: 20px; 
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6); 
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 16px; padding: 20px 22px; margin-bottom: 20px; 
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55); 
         }
 
-        /* Минимализм и типографика: жирный, крупный, без засечек, с чёткой подложкой */
+        /* Типографика: аккуратно, без теней, чуть уменьшенные заголовки */
         h1 { 
-            color: var(--neon-blue); 
+            color: #f1f5f9; 
             text-align: center; 
             text-transform: uppercase; 
-            letter-spacing: 3px; 
+            letter-spacing: 1px; 
             margin: 0; 
-            font-size: 28px; 
-            font-weight: 800;
-            text-shadow: 0 0 24px rgba(0, 242, 255, 0.35), 0 2px 4px rgba(0, 0, 0, 0.8);
+            font-size: 24px; 
+            font-weight: 600;
         }
         h2 {
-            font-weight: 800;
+            font-weight: 600;
             letter-spacing: 1px;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+            color: #f1f5f9;
+            margin-top: 0;
         }
         p, span, .benefit, .back-link {
-            font-weight: 700;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+            font-weight: 500;
         }
 
-        /* Кнопки: массивные, минималистичные, плотный цвет, неоновая рамка, тактильный отклик */
+        /* Кнопки: modern glassmorphism, без неона, только тактильный отклик */
         .btn { 
             display: flex; align-items: center; justify-content: center; 
-            background: var(--btn-solid);
-            color: #fff; 
-            border: 2px solid var(--neon-blue);
-            padding: 20px 18px; 
+            background: rgba(255, 255, 255, 0.05);
+            color: #e5e7eb; 
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 18px 18px; 
             margin: 15px 0; 
             border-radius: 14px; 
             width: 100%; 
-            font-weight: 700; 
-            font-size: 17px; 
+            font-weight: 600; 
+            font-size: 16px; 
             cursor: pointer; 
-            transition: transform 0.12s ease, box-shadow 0.2s ease;
-            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3);
+            transition: transform 0.12s ease, background-color 0.15s ease, border-color 0.15s ease;
+        }
+        .btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.09);
+            border-color: rgba(255, 255, 255, 0.2);
         }
         .btn:active:not(:disabled) {
             transform: scale(0.98);
-            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.12);
         }
 
         .btn-outline { 
             background: transparent; 
-            border: 2px solid var(--neon-blue); 
-            color: var(--neon-blue);
-            box-shadow: none;
-        }
-        .btn-outline:active:not(:disabled) {
-            transform: scale(0.98);
+            border: 1px solid rgba(148, 163, 184, 0.3); 
+            color: #e5e7eb;
         }
 
-        .btn:disabled { opacity: 0.7; cursor: not-allowed; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .input { 
-            width: 100%; padding: 16px; margin: 10px 0; border-radius: 12px; 
-            border: 2px solid rgba(255, 255, 255, 0.15); 
-            background: rgba(15, 23, 42, 0.7); 
-            color: #fff; font-size: 17px; font-weight: 700;
+            width: 100%; padding: 14px 16px; margin: 10px 0; border-radius: 12px; 
+            border: 1px solid rgba(148, 163, 184, 0.35); 
+            background: rgba(15, 23, 42, 0.9); 
+            color: #e5e7eb; font-size: 16px; font-weight: 500;
             box-sizing: border-box;
+            outline: none;
+        }
+        .input:focus {
+            border-color: rgba(148, 163, 184, 0.8);
+            box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.4);
         }
 
-        .benefit { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; font-size: 15px; }
-        .benefit-icon { font-size: 20px; color: var(--neon-blue); }
+        .benefit { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; font-size: 14px; }
+        .benefit-icon { font-size: 20px; color: var(--accent); }
 
         .hidden { display: none !important; }
 
-        .back-link { color: var(--neon-blue); cursor: pointer; display: block; margin-bottom: 10px; font-size: 15px; }
+        .back-link { color: var(--accent); cursor: pointer; display: block; margin-bottom: 10px; font-size: 14px; }
     </style>
 </head>
 <body class="bg-main">
@@ -137,7 +139,7 @@
     <div id="customer" class="hidden container">
         <span class="back-link" onclick="showPage('main-menu')">← НА ГЛАВНУЮ</span>
         <div class="card">
-            <h2 style="color: var(--neon-blue); margin-top:0; font-size: 20px;">Глаза горят, работа кипит:</h2>
+            <h2 style="font-size: 18px; letter-spacing: 1px;">Глаза горят, работа кипит:</h2>
             <div class="benefit"><span class="benefit-icon">🔥</span><span><b>Прощай, Авито:</b> Забудь про бесконечные обзвоны и "недоступы". Мы здесь.</span></div>
             <div class="benefit"><span class="benefit-icon">⏱️</span><span><b>Скорость 10/10:</b> Рабочая бригада будет на месте через 30-60 минут.</span></div>
             <div class="benefit"><span class="benefit-icon">💰</span><span><b>Честная цена:</b> Никаких скрытых доплат за этажи и тяжести.</span></div>
@@ -170,7 +172,7 @@
 
     <div id="worker-cabinet" class="hidden container">
         <div class="card">
-            <h2 style="color: var(--neon-blue);">🛠️ КАБИНЕТ VSH</h2>
+            <h2 style="letter-spacing: 1px;">🛠️ КАБИНЕТ VSH</h2>
             <p>Вы в системе. Новые заказы придут в бот.</p>
             <button class="btn btn-outline" onclick="showPage('main-menu')">ВЫЙТИ</button>
         </div>
