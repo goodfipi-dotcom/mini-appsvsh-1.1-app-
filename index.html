@@ -56,6 +56,8 @@
 
         .btn-outline { background: transparent; border: 2px solid var(--neon-blue); color: var(--neon-blue); }
 
+        .btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
         .input { 
             width: 100%; padding: 14px; margin: 10px 0; border-radius: 12px; 
             border: 1px solid rgba(255, 255, 255, 0.1); 
@@ -95,7 +97,8 @@
             <input type="text" id="address" class="input" placeholder="📍 Адрес">
             <input type="text" id="task" class="input" placeholder="🔧 Что нужно сделать?">
             <input type="tel" id="phone" class="input" placeholder="📞 Номер телефона">
-            <button class="btn" onclick="sendOrder()">🚀 ОТПРАВИТЬ ЗАЯВКУ</button>
+            <button class="btn" id="btn-send-order" onclick="sendOrder()">🚀 ОТПРАВИТЬ ЗАЯВКУ</button>
+            <p id="order-error" class="hidden" style="color: #f87171; font-size: 14px; margin-top: 8px;"></p>
         </div>
         <div class="card hidden" id="order-success" style="text-align: center;">
             <div style="font-size: 50px; margin-bottom: 10px;">⏳</div>
@@ -142,45 +145,79 @@
             if (id === 'customer') {
                 document.getElementById('order-form').classList.remove('hidden');
                 document.getElementById('order-success').classList.add('hidden');
+                document.getElementById('order-error').classList.add('hidden');
+                document.getElementById('btn-send-order').disabled = false;
+                document.getElementById('btn-send-order').textContent = '🚀 ОТПРАВИТЬ ЗАЯВКУ';
             }
         }
 
-        function checkAuth() {
-            if (document.getElementById('worker-pass').value === '777') showPage('worker-cabinet');
-            else tg.showAlert("❌ Ошибка");
+        const API_BASE = window.__API_BASE__ || '';
+
+        async function checkAuth() {
+            const password = document.getElementById('worker-pass').value;
+            if (!password) return tg.showAlert("Введите код доступа");
+            try {
+                const res = await fetch(API_BASE + '/api/worker-auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+                const data = await res.json();
+                if (data.ok) showPage('worker-cabinet');
+                else tg.showAlert("❌ Неверный код доступа");
+            } catch (e) {
+                tg.showAlert("Ошибка соединения");
+            }
         }
 
         async function sendOrder() {
-            // Получаем данные пользователя Telegram для обратной связи
             const user = tg.initDataUnsafe?.user;
-            
             const data = {
                 type: 'new_order_vsh',
-                user_id: user ? user.id : null, // Теперь передаем ID заказчика!
-                name: document.getElementById('cust-name').value,
-                address: document.getElementById('address').value,
-                task: document.getElementById('task').value,
-                phone: document.getElementById('phone').value
+                user_id: user ? user.id : null,
+                name: document.getElementById('cust-name').value.trim(),
+                address: document.getElementById('address').value.trim(),
+                task: document.getElementById('task').value.trim(),
+                phone: document.getElementById('phone').value.trim()
             };
-            
-            if (!data.task || !data.phone || !data.address) {
-                return tg.showAlert("Заполните адрес, телефон и задачу!");
+
+            if (!data.address || !data.task || !data.phone) {
+                return tg.showAlert("Заполните адрес, задачу и номер телефона.");
             }
 
-            document.getElementById('order-form').classList.add('hidden');
-            document.getElementById('order-success').classList.remove('hidden');
+            const btn = document.getElementById('btn-send-order');
+            const errEl = document.getElementById('order-error');
+            errEl.classList.add('hidden');
+            errEl.textContent = '';
+            btn.disabled = true;
+            btn.textContent = '⏳ Отправка...';
 
             try {
-                await fetch('https://mini-appsvsh-production.up.railway.app/api/order', {
+                const res = await fetch(API_BASE + '/api/order', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
+                const result = await res.json();
+
+                if (res.ok && result.success) {
+                    document.getElementById('order-form').classList.add('hidden');
+                    document.getElementById('order-success').classList.remove('hidden');
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = '🚀 ОТПРАВИТЬ ЗАЯВКУ';
+                    const msg = result.error || 'Не удалось отправить заявку';
+                    errEl.textContent = msg;
+                    errEl.classList.remove('hidden');
+                    tg.showAlert(msg);
+                }
             } catch (error) {
                 console.error("Ошибка при отправке:", error);
-                tg.showAlert("Произошла ошибка при отправке заявки. Проверьте соединение.");
+                btn.disabled = false;
+                btn.textContent = '🚀 ОТПРАВИТЬ ЗАЯВКУ';
+                errEl.textContent = 'Проверьте интернет и попробуйте снова.';
+                errEl.classList.remove('hidden');
+                tg.showAlert("Ошибка соединения. Проверьте интернет.");
             }
         }
     </script>
