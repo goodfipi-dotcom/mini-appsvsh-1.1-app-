@@ -8,14 +8,17 @@
     <style>
         :root {
             --neon-blue: #00f2ff;
-            --main-bg: #0f172a;
-            --glass-bg: rgba(15, 23, 42, 0.85);
-            --text-color: #f8fafc;
-            --overlay: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.9));
+            --main-bg: #0a0e1a;
+            --glass-bg: rgba(10, 14, 26, 0.92);
+            --text-color: #ffffff;
+            /* Усиленное затемнение — фон лишь атмосфера, контент на первом плане */
+            --overlay: linear-gradient(rgba(8, 12, 22, 0.82), rgba(8, 12, 22, 0.96));
+            --btn-solid: #1a2f4a;
+            --btn-graphite: #1e293b;
         }
 
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; 
             background-color: var(--main-bg);
             background-size: cover;
             background-position: center;
@@ -23,31 +26,34 @@
             color: var(--text-color); 
             margin: 0; padding: 0; min-height: 100vh;
             transition: background 0.8s ease-in-out, background-image 0.8s ease-in-out;
+            font-weight: 700;
+            font-size: 17px;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* GTA V Vibes — ночной/закатный город, насыщенные цвета, контраст */
+        /* Индустриальный GTA Style — промышленная зона: склады, контейнеры, фура на закате */
         .bg-main {
             background-image: var(--overlay),
-                              url('https://images.unsplash.com/photo-1514565131-fce0801e5785?q=80&w=2070&auto=format&fit=crop');
+                              url('https://images.unsplash.com/photo-1605649487212-47bdab064df7?q=80&w=2070&auto=format&fit=crop');
         }
 
-        /* Worker Style — рабочие/грузчики, суровая атмосфера */
+        /* Рабочий процесс: погрузка, склад, в духе GTA V */
         .bg-customer {
             background-image: var(--overlay),
-                              url('https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=80&w=2070&auto=format&fit=crop');
+                              url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=2070&auto=format&fit=crop');
         }
 
         .container { padding: 20px; max-width: 500px; margin: 0 auto; }
 
         .card { 
             background: var(--glass-bg); 
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(0, 242, 255, 0.2);
-            border-radius: 20px; padding: 20px; margin-bottom: 20px; 
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); 
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(0, 242, 255, 0.25);
+            border-radius: 16px; padding: 22px; margin-bottom: 20px; 
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6); 
         }
 
-        /* Массивные заголовки в стиле игровых интерфейсов */
+        /* Минимализм и типографика: жирный, крупный, без засечек, с чёткой подложкой */
         h1 { 
             color: var(--neon-blue); 
             text-align: center; 
@@ -56,37 +62,65 @@
             margin: 0; 
             font-size: 28px; 
             font-weight: 800;
-            text-shadow: 0 0 20px rgba(0, 242, 255, 0.3);
+            text-shadow: 0 0 24px rgba(0, 242, 255, 0.35), 0 2px 4px rgba(0, 0, 0, 0.8);
         }
         h2 {
             font-weight: 800;
             letter-spacing: 1px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+        }
+        p, span, .benefit, .back-link {
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
         }
 
+        /* Кнопки: массивные, минималистичные, плотный цвет, неоновая рамка, тактильный отклик */
         .btn { 
             display: flex; align-items: center; justify-content: center; 
-            background: linear-gradient(135deg, #2481cc, #00d4ff);
-            color: #fff; border: none; padding: 18px; margin: 15px 0; 
-            border-radius: 16px; width: 100%; font-weight: bold; font-size: 16px; 
-            cursor: pointer; box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+            background: var(--btn-solid);
+            color: #fff; 
+            border: 2px solid var(--neon-blue);
+            padding: 20px 18px; 
+            margin: 15px 0; 
+            border-radius: 14px; 
+            width: 100%; 
+            font-weight: 700; 
+            font-size: 17px; 
+            cursor: pointer; 
+            transition: transform 0.12s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3);
+        }
+        .btn:active:not(:disabled) {
+            transform: scale(0.98);
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
         }
 
-        .btn-outline { background: transparent; border: 2px solid var(--neon-blue); color: var(--neon-blue); }
+        .btn-outline { 
+            background: transparent; 
+            border: 2px solid var(--neon-blue); 
+            color: var(--neon-blue);
+            box-shadow: none;
+        }
+        .btn-outline:active:not(:disabled) {
+            transform: scale(0.98);
+        }
 
         .btn:disabled { opacity: 0.7; cursor: not-allowed; }
 
         .input { 
-            width: 100%; padding: 14px; margin: 10px 0; border-radius: 12px; 
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            background: rgba(15, 23, 42, 0.6); color: #fff; font-size: 16px; box-sizing: border-box;
+            width: 100%; padding: 16px; margin: 10px 0; border-radius: 12px; 
+            border: 2px solid rgba(255, 255, 255, 0.15); 
+            background: rgba(15, 23, 42, 0.7); 
+            color: #fff; font-size: 17px; font-weight: 700;
+            box-sizing: border-box;
         }
 
-        .benefit { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; font-size: 14px; }
-        .benefit-icon { font-size: 18px; color: var(--neon-blue); }
+        .benefit { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; font-size: 15px; }
+        .benefit-icon { font-size: 20px; color: var(--neon-blue); }
 
         .hidden { display: none !important; }
 
-        .back-link { color: var(--neon-blue); cursor: pointer; display: block; margin-bottom: 10px; font-size: 14px; }
+        .back-link { color: var(--neon-blue); cursor: pointer; display: block; margin-bottom: 10px; font-size: 15px; }
     </style>
 </head>
 <body class="bg-main">
@@ -94,7 +128,7 @@
     <div id="main-menu" class="container">
         <div class="card" style="margin-top: 40px; text-align:center;">
             <h1>VSH SERVICE</h1>
-            <p style="opacity: 0.7;">Октябрьский — Сила в кадрах</p>
+            <p style="opacity: 0.9;">Октябрьский — Сила в кадрах</p>
         </div>
         <button class="btn" onclick="showPage('customer')">🙋‍♂️ ЗАКАЗАТЬ РАБОЧИХ</button>
         <button class="btn btn-outline" onclick="showPage('worker-auth')">🛠️ ВХОД ДЛЯ БРИГАД</button>
@@ -115,7 +149,7 @@
             <input type="text" id="task" class="input" placeholder="🔧 Что нужно сделать?">
             <input type="tel" id="phone" class="input" placeholder="📞 Номер телефона">
             <button class="btn" id="btn-send-order" onclick="sendOrder()">🚀 ОТПРАВИТЬ ЗАЯВКУ</button>
-            <p id="order-error" class="hidden" style="color: #f87171; font-size: 14px; margin-top: 8px;"></p>
+            <p id="order-error" class="hidden" style="color: #f87171; font-size: 15px; font-weight: 700; margin-top: 8px;"></p>
         </div>
         <div class="card hidden" id="order-success" style="text-align: center;">
             <div style="font-size: 50px; margin-bottom: 10px;">⏳</div>
