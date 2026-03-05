@@ -155,7 +155,7 @@
         </div>
         <div class="card hidden" id="order-success" style="text-align: center;">
             <div style="font-size: 50px; margin-bottom: 10px;">⏳</div>
-            <h2 style="color: var(--neon-blue);">Заявка отправлена!</h2>
+            <h2>Заявка отправлена!</h2>
             <p>Диспетчер получил ваш запрос. Статус заявки теперь доступен в чате с ботом.</p>
             <button class="btn btn-outline" onclick="showPage('main-menu')">ВЕРНУТЬСЯ</button>
         </div>
@@ -179,9 +179,11 @@
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+        const tg = window.Telegram?.WebApp || null;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
 
         function showPage(id) {
             ['main-menu', 'customer', 'worker-auth', 'worker-cabinet'].forEach(p => {
@@ -204,11 +206,11 @@
             }
         }
 
-        const API_BASE = window.__API_BASE__ || '';
+        const API_BASE = 'https://mini-appsvsh.vercel.app';
 
         async function checkAuth() {
             const password = document.getElementById('worker-pass').value;
-            if (!password) return tg.showAlert("Введите код доступа");
+            if (!password) return tg?.showAlert?.("Введите код доступа");
             try {
                 const res = await fetch(API_BASE + '/api/worker-auth', {
                     method: 'POST',
@@ -217,14 +219,14 @@
                 });
                 const data = await res.json();
                 if (data.ok) showPage('worker-cabinet');
-                else tg.showAlert("❌ Неверный код доступа");
+                else tg?.showAlert?.("❌ Неверный код доступа");
             } catch (e) {
-                tg.showAlert("Ошибка соединения");
+                tg?.showAlert?.("Ошибка соединения");
             }
         }
 
         async function sendOrder() {
-            const user = tg.initDataUnsafe?.user;
+            const user = tg?.initDataUnsafe?.user;
             const data = {
                 type: 'new_order_vsh',
                 user_id: user ? user.id : null,
@@ -235,7 +237,7 @@
             };
 
             if (!data.address || !data.task || !data.phone) {
-                return tg.showAlert("Заполните адрес, задачу и номер телефона.");
+                return tg?.showAlert?.("Заполните адрес, задачу и номер телефона.");
             }
 
             const btn = document.getElementById('btn-send-order');
@@ -262,7 +264,7 @@
                     const msg = result.error || 'Не удалось отправить заявку';
                     errEl.textContent = msg;
                     errEl.classList.remove('hidden');
-                    tg.showAlert(msg);
+                    tg?.showAlert?.(msg);
                 }
             } catch (error) {
                 console.error("Ошибка при отправке:", error);
@@ -270,7 +272,7 @@
                 btn.textContent = '🚀 ОТПРАВИТЬ ЗАЯВКУ';
                 errEl.textContent = 'Проверьте интернет и попробуйте снова.';
                 errEl.classList.remove('hidden');
-                tg.showAlert("Ошибка соединения. Проверьте интернет.");
+                tg?.showAlert?.("Ошибка соединения. Проверьте интернет.");
             }
         }
     </script>
