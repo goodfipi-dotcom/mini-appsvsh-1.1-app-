@@ -206,14 +206,13 @@
         let currentWorker = null;
         let selectedOrder = null;
 
-        // ====================== ОПРЕДЕЛЕНИЕ АДМИНА (только у тебя) ======================
+        // ====================== ОПРЕДЕЛЕНИЕ АДМИНА ======================
         function checkAdmin() {
             const userId = tg?.initDataUnsafe?.user?.id;
             if (userId === ADMIN_TG_ID) {
                 document.getElementById('admin-main-btn').classList.remove('hidden');
                 return;
             }
-            // Запасной пароль (если Telegram не отдал ID)
             if (!localStorage.getItem('admin_access')) {
                 const entered = prompt("Введите пароль диспетчера:");
                 if (entered === ADMIN_PASSWORD) {
@@ -419,12 +418,14 @@
             }
         }
 
-        // ====================== ПУБЛИКАЦИЯ ОТ ВЛАДЕЛЬЦА ======================
+        // ====================== ПУБЛИКАЦИЯ ОТ ВЛАДЕЛЬЦА (с отладкой) ======================
         async function publishAdminOrder() {
             const task = document.getElementById('admin-task').value.trim();
             const price = parseInt(document.getElementById('admin-price').value) || 0;
             const address = document.getElementById('admin-address').value.trim();
             const comment = document.getElementById('admin-comment').value.trim();
+
+            console.log('📤 Отправляем от админа:', { task, price, address, comment });
 
             if (!task || price < 500 || !address) {
                 return tg?.showAlert("Заполните задачу, ставку (мин. 500₽) и адрес");
@@ -445,19 +446,21 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
+                const result = await res.json();
+                console.log('Ответ сервера:', result);
+
                 if (res.ok) {
                     document.getElementById('admin-success').classList.remove('hidden');
-                    // Обновляем список заказов у всех рабочих
-                    loadOrders();
                 } else {
-                    tg?.showAlert("Ошибка сервера — проверь /api/order");
+                    tg?.showAlert("Ошибка сервера: " + (result.error || 'проверь консоль'));
                 }
             } catch (e) {
+                console.error('Ошибка запроса:', e);
                 tg?.showAlert("Нет соединения");
             }
         }
 
-        console.log("✅ Полный код загружен. Кнопка 'СОЗДАТЬ ОБЪЯВЛЕНИЕ' видна только у владельца.");
+        console.log("✅ Полный код загружен. Кнопка видна только у владельца.");
     </script>
 </body>
 </html>
