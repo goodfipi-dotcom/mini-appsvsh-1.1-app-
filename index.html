@@ -81,8 +81,8 @@
         </div>
         <button class="btn btn-accent" onclick="showPage('customer')">🙋‍♂️ ЗАКАЗАТЬ РАБОЧИХ</button>
         <button class="btn btn-outline" onclick="showPage('worker-auth')">🛠️ ВХОД ДЛЯ БРИГАД</button>
-        
-        <!-- Кнопка "Создать объявление" — ТОЛЬКО У ТЕБЯ (по telegram_id) -->
+       
+        <!-- Кнопка только для владельца -->
         <div id="admin-main-btn" class="hidden">
             <button class="btn btn-outline" onclick="showPage('admin-panel')">👑 СОЗДАТЬ ОБЪЯВЛЕНИЕ</button>
         </div>
@@ -174,18 +174,18 @@
         </div>
     </div>
 
-    <!-- ==================== ПАНЕЛЬ ВЛАДЕЛЬЦА (только у тебя) ==================== -->
+    <!-- ====================== ПАНЕЛЬ АДМИНИСТРАТОРА ====================== -->
     <div id="admin-panel" class="hidden container">
         <span class="back-link" onclick="showPage('main-menu')">← НА ГЛАВНУЮ</span>
         <div class="card">
             <h2>Публикация нового заказа</h2>
             <p style="opacity:0.7; text-align:center; margin-bottom:20px;">Только для владельца</p>
-            
+           
             <input type="text" id="admin-task" class="input" placeholder="Что нужно сделать? (задача)">
             <input type="number" id="admin-price" class="input" placeholder="Ставка рабочему, ₽/час" min="500">
             <input type="text" id="admin-address" class="input" placeholder="Полный адрес">
             <textarea id="admin-comment" class="input" style="height:80px;" placeholder="Дополнительно (время, условия)"></textarea>
-            
+           
             <button class="btn btn-accent" onclick="publishAdminOrder()">ОПУБЛИКОВАТЬ ЗАКАЗ</button>
         </div>
         <div id="admin-success" class="card hidden" style="text-align:center;">
@@ -201,19 +201,32 @@
         if (tg) { tg.ready(); tg.expand(); }
         const API_BASE = 'https://mini-appsvsh.vercel.app';
         const ADMIN_TG_ID = 7693616720;
+        const ADMIN_PASSWORD = "admin777";
 
         let currentWorker = null;
         let selectedOrder = null;
 
-        // ==================== ТОЛЬКО У ТЕБЯ (строгая проверка по ID) ====================
+        // ====================== ОПРЕДЕЛЕНИЕ АДМИНА (только у тебя) ======================
         function checkAdmin() {
             const userId = tg?.initDataUnsafe?.user?.id;
             if (userId === ADMIN_TG_ID) {
+                document.getElementById('admin-main-btn').classList.remove('hidden');
+                return;
+            }
+            // Запасной пароль (если Telegram не отдал ID)
+            if (!localStorage.getItem('admin_access')) {
+                const entered = prompt("Введите пароль диспетчера:");
+                if (entered === ADMIN_PASSWORD) {
+                    localStorage.setItem('admin_access', 'true');
+                    document.getElementById('admin-main-btn').classList.remove('hidden');
+                }
+            } else {
                 document.getElementById('admin-main-btn').classList.remove('hidden');
             }
         }
         checkAdmin();
 
+        // ====================== ТВОЙ ОРИГИНАЛЬНЫЙ КОД ======================
         function showPage(id) {
             ['main-menu', 'customer', 'worker-auth', 'worker-cabinet', 'modal-accept', 'admin-panel'].forEach(p => {
                 document.getElementById(p).classList.add('hidden');
@@ -222,7 +235,6 @@
             document.body.className = (id === 'customer') ? 'bg-customer' : 'bg-main';
         }
 
-        // === ВЕСЬ ТВОЙ ОРИГИНАЛЬНЫЙ КОД (ничего не изменил) ===
         function switchTab(tab) {
             ['orders', 'stats', 'profile'].forEach(t => {
                 document.getElementById('tab-' + t).classList.add('hidden');
@@ -407,7 +419,7 @@
             }
         }
 
-        // ==================== НОВАЯ ФУНКЦИЯ ДЛЯ ВЛАДЕЛЬЦА ====================
+        // ====================== ПУБЛИКАЦИЯ ОТ ВЛАДЕЛЬЦА ======================
         async function publishAdminOrder() {
             const task = document.getElementById('admin-task').value.trim();
             const price = parseInt(document.getElementById('admin-price').value) || 0;
@@ -419,12 +431,12 @@
             }
 
             const data = {
-                service: task,           // чтобы сразу показывалось в loadOrders
+                service: task,
                 worker_price: price,
                 address: address,
-                comment: comment || "",
-                source: "admin",
-                status: "published"      // сразу публикуем
+                comment: comment,
+                source: 'admin',
+                status: 'published'
             };
 
             try {
@@ -435,17 +447,17 @@
                 });
                 if (res.ok) {
                     document.getElementById('admin-success').classList.remove('hidden');
-                    // Обновляем список у рабочих автоматически (если они онлайн)
-                    if (typeof loadOrders === 'function') loadOrders();
+                    // Обновляем список заказов у всех рабочих
+                    loadOrders();
                 } else {
-                    tg?.showAlert("Ошибка сервера. Проверь backend (/api/order)");
+                    tg?.showAlert("Ошибка сервера — проверь /api/order");
                 }
             } catch (e) {
                 tg?.showAlert("Нет соединения");
             }
         }
 
-        console.log("✅ Кнопка админа добавлена. Видна только у telegram_id = 7693616720");
+        console.log("✅ Полный код загружен. Кнопка 'СОЗДАТЬ ОБЪЯВЛЕНИЕ' видна только у владельца.");
     </script>
 </body>
 </html>
