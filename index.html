@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>VSH Service - Октябрьский</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Если будете подключать Supabase Realtime, раскомментируйте:
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    -->
     <style>
         :root {
             --accent: #38bdf8;
@@ -15,76 +18,66 @@
             --success: #10b981;
             --danger: #f87171;
         }
-
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif; 
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
             background-color: var(--main-bg);
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
-            color: var(--text-color); 
+            color: var(--text-color);
             margin: 0; padding: 0; min-height: 100vh;
             font-weight: 500;
             font-size: 16px;
             -webkit-font-smoothing: antialiased;
         }
-
         .bg-main { background-image: var(--overlay), url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=2070&auto=format&fit=crop'); }
         .bg-customer { background-image: var(--overlay), url('https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=2084&auto=format&fit=crop'); }
-
         .container { padding: 20px; max-width: 500px; margin: 0 auto; }
-        .card { 
-            background: var(--glass-bg); 
+        .card {
+            background: var(--glass-bg);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(148, 163, 184, 0.18);
-            border-radius: 16px; padding: 20px; margin-bottom: 20px; 
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55); 
+            border-radius: 16px; padding: 20px; margin-bottom: 20px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
         }
-
         h1, h2 { color: #f1f5f9; text-transform: uppercase; letter-spacing: 1px; margin: 0; text-align: center; }
         h1 { font-size: 24px; font-weight: 600; }
         h2 { font-size: 18px; margin-bottom: 15px; }
-
-        .btn { 
-            display: flex; align-items: center; justify-content: center; 
+        .btn {
+            display: flex; align-items: center; justify-content: center;
             background: rgba(255, 255, 255, 0.05);
             color: #e5e7eb; border: 1px solid rgba(255, 255, 255, 0.12);
-            padding: 16px; margin: 12px 0; border-radius: 14px; 
-            width: 100%; font-weight: 600; font-size: 16px; cursor: pointer; 
+            padding: 16px; margin: 12px 0; border-radius: 14px;
+            width: 100%; font-weight: 600; font-size: 16px; cursor: pointer;
             transition: all 0.15s ease;
         }
         .btn:active { transform: scale(0.98); background: rgba(255, 255, 255, 0.12); }
         .btn-accent { background: var(--accent); color: #020617; border: none; }
         .btn-outline { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
+        .btn-danger { background: var(--danger); color: white; border: none; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .input { 
-            width: 100%; padding: 14px; margin: 10px 0; border-radius: 12px; 
-            border: 1px solid rgba(148, 163, 184, 0.35); 
+        .input, .textarea {
+            width: 100%; padding: 14px; margin: 10px 0; border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.35);
             background: rgba(15, 23, 42, 0.9); color: #e5e7eb; outline: none; box-sizing: border-box;
         }
-
+        .textarea { min-height: 100px; resize: vertical; }
         .benefit { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; font-size: 14px; }
-        .benefit-icon { color: var(--accent); }
-
         .hidden { display: none !important; }
         .back-link { color: var(--accent); cursor: pointer; display: block; margin-bottom: 15px; font-size: 14px; font-weight: bold; }
-
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
         .tab { flex: 1; text-align: center; padding: 10px; border-bottom: 2px solid transparent; cursor: pointer; opacity: 0.6; }
         .tab.active { border-color: var(--accent); opacity: 1; font-weight: bold; }
-        
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .stat-item { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; text-align: center; }
         .stat-val { display: block; font-size: 20px; font-weight: 700; color: var(--accent); }
         .stat-label { font-size: 12px; opacity: 0.7; }
-
-        .order-card { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; margin-bottom: 10px; border-left: 4px solid var(--accent); }
+        .order-card { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; margin-bottom: 12px; border-left: 4px solid var(--accent); }
         .rules-text { font-size: 14px; line-height: 1.5; color: #cbd5e1; }
+        .admin-section { border-top: 2px solid var(--accent); padding-top: 20px; margin-top: 20px; }
     </style>
 </head>
 <body class="bg-main">
-
     <div id="main-menu" class="container">
         <div class="card" style="margin-top: 60px; text-align:center;">
             <h1>VSH SERVICE</h1>
@@ -92,8 +85,14 @@
         </div>
         <button class="btn btn-accent" onclick="showPage('customer')">🙋‍♂️ ЗАКАЗАТЬ РАБОЧИХ</button>
         <button class="btn btn-outline" onclick="showPage('worker-auth')">🛠️ ВХОД ДЛЯ БРИГАД</button>
+        
+        <!-- Кнопка только для админа -->
+        <div id="admin-main-btn" class="hidden">
+            <button class="btn btn-outline" onclick="showPage('admin-panel')">👑 СОЗДАТЬ ОБЪЯВЛЕНИЕ</button>
+        </div>
     </div>
 
+    <!-- Форма заказчика (клиент) -->
     <div id="customer" class="hidden container">
         <span class="back-link" onclick="showPage('main-menu')">← НА ГЛАВНУЮ</span>
         <div class="card">
@@ -106,7 +105,7 @@
             <input type="text" id="address" class="input" placeholder="📍 Адрес">
             <input type="text" id="task" class="input" placeholder="🔧 Что нужно сделать?">
             <input type="tel" id="phone" class="input" placeholder="📞 Номер телефона">
-            <button class="btn btn-accent" id="btn-send-order" onclick="sendOrder()">🚀 ОТПРАВИТЬ ЗАЯВКУ</button>
+            <button class="btn btn-accent" id="btn-send-order" onclick="sendOrder('client')">🚀 ОТПРАВИТЬ ЗАЯВКУ</button>
         </div>
         <div id="order-success" class="card hidden" style="text-align: center;">
             <div style="font-size: 50px;">⏳</div>
@@ -116,16 +115,18 @@
         </div>
     </div>
 
+    <!-- Авторизация рабочего -->
     <div id="worker-auth" class="hidden container">
         <span class="back-link" onclick="showPage('main-menu')">← НАЗАД</span>
         <div class="card">
             <h2>Доступ бригад</h2>
-            <p style="text-align:center; opacity: 0.7; font-size: 14px; margin-bottom: 20px;">Введите ваш персональный ПИН-код</p>
-            <input type="password" id="worker-pass" class="input" style="text-align:center; letter-spacing: 5px; font-size: 24px;" placeholder="****">
+            <p style="text-align:center; opacity: 0.7; font-size: 14px; margin-bottom: 20px;">Введите ваш ПИН-код</p>
+            <input type="password" id="worker-pass" class="input" style="text-align:center; letter-spacing: 8px; font-size: 28px;" placeholder="••••">
             <button class="btn btn-accent" id="btn-login" onclick="loginWorker()">ВОЙТИ В КАБИНЕТ</button>
         </div>
     </div>
 
+    <!-- Кабинет рабочего -->
     <div id="worker-cabinet" class="hidden container">
         <div class="tabs">
             <div class="tab active" id="tab-orders-link" onclick="switchTab('orders')">Заказы</div>
@@ -153,131 +154,163 @@
                 <h2 id="worker-name">Загрузка...</h2>
                 <p id="worker-phone" style="text-align:center; opacity: 0.7;"></p>
                 <div style="margin-top: 20px;">
-                    <label style="font-size: 12px; opacity: 0.6;">Реквизиты для выплат:</label>
-                    <input type="text" id="bank-details" class="input" placeholder="Карта или СБП">
+                    <label style="font-size: 12px; opacity: 0.6;">Реквизиты для выплат (СБП/карта):</label>
+                    <input type="text" id="bank-details" class="input" placeholder="Например: +79001234567">
                     <button class="btn btn-outline" onclick="saveDetails()">СОХРАНИТЬ</button>
                 </div>
             </div>
-            <button class="btn" onclick="showPage('main-menu')" style="color: var(--danger);">ВЫЙТИ ИЗ СИСТЕМЫ</button>
+            <button class="btn btn-danger" onclick="logoutWorker()">ВЫЙТИ</button>
         </div>
     </div>
 
+    <!-- Модал принятия заказа -->
     <div id="modal-accept" class="hidden container">
         <span class="back-link" onclick="showPage('worker-cabinet')">← ОТМЕНА</span>
-        
         <div id="accept-step-1" class="card">
             <h2>Правила работы</h2>
             <div class="rules-text">
-                <p>1. Быть на месте за 10 минут до начала.</p>
-                <p>2. Не брать контакты у клиента напрямую.</p>
-                <p>3. Соблюдать дисциплину и трезвость.</p>
-                <p style="color: var(--danger); font-weight: bold;">Нарушение — блокировка и штраф.</p>
+                <p>1. Прибыть на место за 10 минут до начала.</p>
+                <p>2. Не брать прямые контакты клиента.</p>
+                <p>3. Соблюдать трезвость и дисциплину.</p>
+                <p style="color: var(--danger); font-weight: bold;">Нарушение → блокировка + штраф.</p>
             </div>
             <label style="display: flex; align-items: center; gap: 10px; margin-top: 20px; cursor: pointer;">
-                <input type="checkbox" id="rule-check"> Я ознакомлен и согласен
+                <input type="checkbox" id="rule-check"> Я ознакомлен и полностью согласен
             </label>
-            <button class="btn btn-accent" style="margin-top: 20px;" onclick="acceptStep2()">ПРИНЯТЬ</button>
+            <button class="btn btn-accent" style="margin-top: 20px;" onclick="acceptStep2()">ПРИНЯТЬ ЗАКАЗ</button>
         </div>
-
         <div id="accept-step-2" class="hidden card">
-            <h2>Подтверждение</h2>
-            <div id="order-details-preview" style="margin-bottom: 20px;"></div>
-            <p style="font-size: 14px; opacity: 0.8;">Напишите <b>"подтверждаю"</b> для получения адреса:</p>
-            <input type="text" id="confirm-text" class="input" placeholder="...">
-            <button class="btn btn-accent" onclick="finalConfirm()">ЗАЯВКА ПОДТВЕРЖДЕНА</button>
+            <h2>Финальное подтверждение</h2>
+            <div id="order-details-preview" style="margin-bottom: 20px; background:rgba(255,255,255,0.05); padding:15px; border-radius:10px;"></div>
+            <p style="font-size: 14px; opacity: 0.8;">Напишите <b>"подтверждаю"</b> чтобы забрать заказ:</p>
+            <input type="text" id="confirm-text" class="input" placeholder="пишите сюда...">
+            <button class="btn btn-accent" onclick="finalConfirm()">ПОДТВЕРЖДАЮ — ЗАБИРАЮ</button>
+        </div>
+    </div>
+
+    <!-- Панель администратора -->
+    <div id="admin-panel" class="hidden container">
+        <span class="back-link" onclick="showPage('main-menu')">← НА ГЛАВНУЮ</span>
+        <div class="card">
+            <h2>Публикация нового заказа</h2>
+            <p style="opacity:0.7; text-align:center; margin-bottom:20px;">Только для диспетчера</p>
+            
+            <input type="text" id="admin-task" class="input" placeholder="Что нужно сделать? (задача)">
+            <input type="number" id="admin-price" class="input" placeholder="Ставка рабочему, ₽/час" min="500">
+            <input type="text" id="admin-address" class="input" placeholder="Полный адрес">
+            <textarea id="admin-comment" class="textarea" placeholder="Дополнительно (время, объем, особые условия)"></textarea>
+            
+            <button class="btn btn-accent" onclick="publishAdminOrder()">ОПУБЛИКОВАТЬ ЗАКАЗ</button>
+        </div>
+        <div id="admin-success" class="card hidden" style="text-align:center;">
+            <div style="font-size:60px;">✅</div>
+            <h2>Заказ опубликован!</h2>
+            <p>Рабочие уже получают уведомление.</p>
+            <button class="btn" onclick="showPage('main-menu')">НА ГЛАВНУЮ</button>
         </div>
     </div>
 
     <script>
         const tg = window.Telegram?.WebApp || null;
-        if (tg) { tg.ready(); tg.expand(); }
+        if (tg) { tg.ready(); tg.expand(); tg.MainButton.hide(); }
 
-        const API_BASE = 'https://mini-appsvsh.vercel.app';
+        const API_BASE = 'https://mini-appsvsh.vercel.app'; // ваш Vercel домен
+        const ADMIN_TG_ID = 7693616720;
+
         let currentWorker = null;
         let selectedOrder = null;
+        let isAdmin = false;
+
+        // Проверка на админа при запуске
+        function checkAdmin() {
+            const user = tg?.initDataUnsafe?.user;
+            if (user && user.id === ADMIN_TG_ID) {
+                isAdmin = true;
+                document.getElementById('admin-main-btn').classList.remove('hidden');
+            }
+        }
+        checkAdmin();
 
         function showPage(id) {
-            ['main-menu', 'customer', 'worker-auth', 'worker-cabinet', 'modal-accept'].forEach(p => {
+            ['main-menu','customer','worker-auth','worker-cabinet','modal-accept','admin-panel'].forEach(p => {
                 document.getElementById(p).classList.add('hidden');
             });
             document.getElementById(id).classList.remove('hidden');
-            document.body.className = (id === 'customer') ? 'bg-customer' : 'bg-main';
+            
+            if (id === 'customer') document.body.className = 'bg-customer';
+            else document.body.className = 'bg-main';
+
+            if (id === 'worker-cabinet') switchTab('orders');
         }
 
         function switchTab(tab) {
-            ['orders', 'stats', 'profile'].forEach(t => {
-                document.getElementById('tab-' + t).classList.add('hidden');
-                document.getElementById('tab-' + t + '-link').classList.remove('active');
+            ['orders','stats','profile'].forEach(t => {
+                document.getElementById('tab-'+t).classList.add('hidden');
+                document.getElementById('tab-'+t+'-link').classList.remove('active');
             });
-            document.getElementById('tab-' + tab).classList.remove('hidden');
-            document.getElementById('tab-' + tab + '-link').classList.add('active');
-            if (tab === 'orders') loadOrders();
+            document.getElementById('tab-'+tab).classList.remove('hidden');
+            document.getElementById('tab-'+tab+'-link').classList.add('active');
+
+            if (tab === 'orders') loadAvailableOrders();
         }
 
-        // --- УЛЬТИМАТИВНЫЙ ВХОД ---
+        // ─── АВТОРИЗАЦИЯ РАБОЧЕГО ───────────────────────────────────────
         async function loginWorker() {
-            const pass = document.getElementById('worker-pass').value;
-            const btn = document.getElementById('btn-login');
-            
+            const pass = document.getElementById('worker-pass').value.trim();
             if (!pass) return tg?.showAlert("Введите ПИН-код");
 
-            // Если ПИН не 2026, даже не пытаемся стучать на сервер
-            if (pass !== '2026') {
-                return tg?.showAlert("❌ Неверный код доступа");
-            }
+            // Пока хардкод, потом заменить на уникальные из БД
+            if (pass !== '2026') return tg?.showAlert("❌ Неверный ПИН-код");
 
-            btn.disabled = true;
-
-            // Пробуем достать данные ТГ для красоты, если их нет - ставим заглушки
-            const userId = tg?.initDataUnsafe?.user?.id || Date.now();
-            const userName = tg?.initDataUnsafe?.user?.first_name || "Бригадир";
+            const user = tg?.initDataUnsafe?.user || {};
+            const payload = {
+                password: pass,
+                telegram_id: user.id || Date.now(),
+                first_name: user.first_name || "Бригада"
+            };
 
             try {
                 const res = await fetch(API_BASE + '/api/worker-auth', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        password: pass, 
-                        telegram_id: userId, 
-                        first_name: userName 
-                    })
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
                 });
-                
                 const data = await res.json();
-                
-                if (data.ok) {
+
+                if (data.ok && data.worker) {
                     currentWorker = data.worker;
-                    updateWorkerUI();
-                    showPage('worker-cabinet');
-                    loadOrders();
                 } else {
-                    // ПИН правильный, но сервер капризничает? Плевать, пускаем!
-                    forceEnter(userName, userId);
+                    // fallback
+                    currentWorker = {
+                        id: payload.telegram_id,
+                        name: payload.first_name,
+                        total_hours: 0,
+                        total_earnings: 0,
+                        rating: 5.0,
+                        level: "Рабочий",
+                        bank_details: ""
+                    };
                 }
-            } catch (e) {
-                // Нет интернета или сервер лег? Пускаем!
-                forceEnter(userName, userId);
-            } finally { 
-                btn.disabled = false; 
+
+                updateWorkerUI();
+                showPage('worker-cabinet');
+                loadAvailableOrders();
+            } catch (err) {
+                tg?.showAlert("Ошибка соединения, но пускаем локально");
+                forceEnter(payload.first_name, payload.telegram_id);
             }
         }
 
         function forceEnter(name, id) {
-            currentWorker = {
-                id: id,
-                name: name,
-                total_hours: 0,
-                total_earnings: 0,
-                rating: 5.0,
-                level: "Рабочий"
-            };
+            currentWorker = { id, name, total_hours:0, total_earnings:0, rating:5.0, level:"Рабочий" };
             updateWorkerUI();
             showPage('worker-cabinet');
-            loadOrders();
+            loadAvailableOrders();
         }
 
         function updateWorkerUI() {
-            document.getElementById('worker-name').textContent = currentWorker.name;
+            if (!currentWorker) return;
+            document.getElementById('worker-name').textContent = currentWorker.name || "Бригада";
             document.getElementById('worker-phone').textContent = currentWorker.phone || 'Активен';
             document.getElementById('stat-hours').textContent = currentWorker.total_hours || 0;
             document.getElementById('stat-money').textContent = (currentWorker.total_earnings || 0) + '₽';
@@ -286,35 +319,39 @@
             document.getElementById('bank-details').value = currentWorker.bank_details || '';
         }
 
-        async function loadOrders() {
-            const list = document.getElementById('available-orders-list');
-            list.innerHTML = '<p style="text-align:center; opacity: 0.5;">Загрузка...</p>';
-            
+        // ─── ЗАГРУЗКА ДОСТУПНЫХ ЗАКАЗОВ ────────────────────────────────
+        async function loadAvailableOrders() {
+            const container = document.getElementById('available-orders-list');
+            container.innerHTML = '<p style="text-align:center; opacity:0.6;">Загрузка заказов...</p>';
+
             try {
                 const res = await fetch(API_BASE + '/api/order?status=published');
-                const data = await res.json();
-                
-                if (!data || data.length === 0) {
-                    list.innerHTML = '<p style="text-align:center; opacity: 0.5; margin-top:20px;">Пока нет доступных заказов</p>';
+                if (!res.ok) throw new Error('Bad response');
+                const orders = await res.json();
+
+                if (!orders || orders.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; opacity:0.6; margin:40px 0;">Пока нет активных заказов</p>';
                     return;
                 }
 
-                list.innerHTML = '';
-                data.forEach(order => {
-                    const div = document.createElement('div');
-                    div.className = 'order-card';
-                    div.innerHTML = `
-                        <div style="font-weight:bold; margin-bottom:5px;">🔧 ${order.service}</div>
-                        <div style="font-size:14px; opacity:0.8; margin-bottom:10px;">💰 Ставка: ${order.worker_price}₽/час</div>
-                        <button class="btn btn-accent" style="padding:10px; margin:0;" onclick='openAcceptModal(${JSON.stringify(order)})'>ПРИНЯТЬ</button>
+                container.innerHTML = '';
+                orders.forEach(o => {
+                    const card = document.createElement('div');
+                    card.className = 'order-card';
+                    card.innerHTML = `
+                        <div style="font-weight:700; font-size:17px; margin-bottom:8px;">${o.task || 'Задача'}</div>
+                        <div style="color:var(--accent); font-weight:600; margin-bottom:12px;">${o.price || '?'} ₽/час</div>
+                        ${o.comment ? `<div style="font-size:14px; opacity:0.8; margin-bottom:12px;">${o.comment}</div>` : ''}
+                        <button class="btn btn-accent" style="padding:12px;" onclick='openAcceptModal(${JSON.stringify(o)})'>ЗАБРАТЬ ЗАКАЗ</button>
                     `;
-                    list.appendChild(div);
+                    container.appendChild(card);
                 });
             } catch (e) {
-                list.innerHTML = '<p style="color:var(--danger); text-align:center;">Ошибка загрузки</p>';
+                container.innerHTML = `<p style="color:var(--danger); text-align:center;">Ошибка загрузки заказов</p>`;
             }
         }
 
+        // ─── ПРИНЯТИЕ ЗАКАЗА ────────────────────────────────────────────
         function openAcceptModal(order) {
             selectedOrder = order;
             document.getElementById('rule-check').checked = false;
@@ -325,83 +362,146 @@
 
         function acceptStep2() {
             if (!document.getElementById('rule-check').checked) {
-                return tg?.showAlert("Нужно согласиться с правилами!");
+                return tg?.showAlert("Необходимо согласиться с правилами");
             }
             document.getElementById('accept-step-1').classList.add('hidden');
             document.getElementById('accept-step-2').classList.remove('hidden');
+
             document.getElementById('order-details-preview').innerHTML = `
-                <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:10px;">
-                    <b>Задача:</b> ${selectedOrder.service}<br>
-                    <b>Оплата:</b> ${selectedOrder.worker_price}₽/ч
-                </div>
+                <b>Задача:</b> ${selectedOrder.task}<br>
+                <b>Ставка:</b> ${selectedOrder.price} ₽/час<br>
+                ${selectedOrder.comment ? `<b>Доп:</b> ${selectedOrder.comment}` : ''}
             `;
         }
 
         async function finalConfirm() {
-            const text = document.getElementById('confirm-text').value.toLowerCase().trim();
-            if (text !== 'подтверждаю') {
-                return tg?.showAlert("Введите слово 'подтверждаю'");
+            if (document.getElementById('confirm-text').value.trim().toLowerCase() !== 'подтверждаю') {
+                return tg?.showAlert("Напишите слово «подтверждаю»");
             }
 
             try {
                 const res = await fetch(API_BASE + '/api/worker-actions', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         action: 'accept_order',
                         order_id: selectedOrder.id,
-                        worker_id: currentWorker.id
+                        worker_id: currentWorker.id,
+                        worker_name: currentWorker.name
                     })
                 });
                 const data = await res.json();
+
                 if (data.success) {
-                    tg?.showAlert(`✅ Принято! Адрес: ${selectedOrder.address}`);
+                    tg?.showAlert(`✅ Заказ принят!\nАдрес: ${selectedOrder.address}\nСвяжитесь с клиентом по номеру из заявки.`);
                     showPage('worker-cabinet');
-                    loadOrders();
+                    loadAvailableOrders();
                 } else {
-                    tg?.showAlert("Ошибка: " + data.error);
+                    tg?.showAlert("Не удалось принять заказ: " + (data.error || 'неизвестно'));
                 }
-            } catch (e) {
-                tg?.showAlert("Ошибка соединения");
+            } catch (err) {
+                tg?.showAlert("Ошибка сети");
             }
         }
 
-        async function sendOrder() {
-            const data = {
-                name: document.getElementById('cust-name').value.trim(),
-                address: document.getElementById('address').value.trim(),
-                task: document.getElementById('task').value.trim(),
-                phone: document.getElementById('phone').value.trim()
-            };
-
-            if (!data.address || !data.task || !data.phone) {
-                return tg?.showAlert?.("Заполните адрес, задачу и телефон.");
+        // ─── ОТПРАВКА ЗАЯВКИ ОТ КЛИЕНТА ────────────────────────────────
+        async function sendOrder(source = 'client') {
+            let data = {};
+            if (source === 'client') {
+                data = {
+                    name: document.getElementById('cust-name').value.trim(),
+                    address: document.getElementById('address').value.trim(),
+                    task: document.getElementById('task').value.trim(),
+                    phone: document.getElementById('phone').value.trim(),
+                    source: 'client'
+                };
+                if (!data.address || !data.task || !data.phone) {
+                    return tg?.showAlert("Заполните адрес, задачу и телефон");
+                }
             }
 
-            const btn = document.getElementById('btn-send-order');
-            btn.disabled = true;
-            btn.textContent = 'Отправка...';
+            const btn = document.getElementById(source === 'client' ? 'btn-send-order' : 'btn-publish-admin');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Отправка...';
+            }
 
             try {
                 const res = await fetch(API_BASE + '/api/order', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(data)
                 });
+
                 if (res.ok) {
-                    document.getElementById('order-form').classList.add('hidden');
-                    document.getElementById('order-success').classList.remove('hidden');
+                    if (source === 'client') {
+                        document.getElementById('order-form').classList.add('hidden');
+                        document.getElementById('order-success').classList.remove('hidden');
+                    } else {
+                        document.getElementById('admin-success').classList.remove('hidden');
+                    }
                 } else {
-                    tg?.showAlert("Ошибка при отправке");
+                    tg?.showAlert("Ошибка сервера");
                 }
-            } catch (error) {
-                tg?.showAlert("Ошибка соединения");
+            } catch (err) {
+                tg?.showAlert("Нет соединения");
             } finally {
-                btn.disabled = false;
-                btn.textContent = '🚀 ОТПРАВИТЬ ЗАЯВКУ';
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = source === 'client' ? '🚀 ОТПРАВИТЬ ЗАЯВКУ' : 'ОПУБЛИКОВАТЬ ЗАКАЗ';
+                }
             }
+        }
+
+        // ─── ПУБЛИКАЦИЯ ЗАКАЗА АДМИНОМ ──────────────────────────────────
+        function publishAdminOrder() {
+            const task    = document.getElementById('admin-task').value.trim();
+            const price   = parseInt(document.getElementById('admin-price').value) || 0;
+            const address = document.getElementById('admin-address').value.trim();
+            const comment = document.getElementById('admin-comment').value.trim();
+
+            if (!task || price < 500 || !address) {
+                return tg?.showAlert("Заполните задачу, ставку (мин. 500₽) и адрес");
+            }
+
+            const data = {
+                task, price, address, comment,
+                source: 'admin',
+                status: 'published'   // сразу публикуем
+            };
+
+            sendOrder('admin'); // переиспользуем функцию, но можно сделать отдельную
+        }
+
+        // Пока заглушка сохранения реквизитов (добавить API позже)
+        function saveDetails() {
+            const val = document.getElementById('bank-details').value.trim();
+            if (val) {
+                tg?.showAlert("Реквизиты сохранены (API пока не подключен)");
+                // TODO: POST /api/worker-profile
+            }
+        }
+
+        function logoutWorker() {
+            currentWorker = null;
+            showPage('main-menu');
+        }
+
+        // Опционально: если подключите Supabase Realtime
+        /*
+        const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        supabase
+            .channel('orders-changes')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, payload => {
+                if (payload.new.status === 'published') loadAvailableOrders();
+            })
+            .subscribe();
+        */
+
+        // Инициализация
+        if (tg?.initDataUnsafe?.user?.id === ADMIN_TG_ID) {
+            console.log("Добро пожаловать, владелец");
         }
     </script>
 </body>
 </html>
-
