@@ -1,68 +1,62 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Подключение к Supabase через переменные окружения Vercel
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
-
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-// Для Telegram уведомлений
-const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN || '';
-const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+const BOT_TOKEN = process.env.TELEGRAM_TOKEN;
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const { service, address, comment, client_price, worker_price, margin, workers_needed } = req.body;
 
   try {
-    const { name, address, task, phone } = req.body || {};
-
-    // Проверка обязательных полей
-    if (!address || !task || !phone) {
-      return res.status(400).json({ error: 'Заполните адрес, задачу и номер телефона' });
-    }
-
-    // Сохраняем заказ в Supabase
-    // ВАЖНО: колонки name, phone, service, address, date, status должны быть в таблице!
-    const { data, error } = await supabase
+    // 1. ЗАПИСЬ В БАЗУ
+    const { data: order, error: dbError } = await supabase
       .from('orders')
-      .insert([
-        {
-          name: name || null,
-          phone: phone || null,
-          service: task || null,    // В базе это колонка service
-          address: address || null,  // В базе это колонка address
-          date: new Date().toISOString(),
-          status: 'new',
-        },
-      ]);
+      .insert([{
+        task: service,
+        address: address,
+        comment: comment,
+        client_price: client_price,
+        worker_price: worker_price,
+        margin: margin,
+        workers_needed: workers_needed,
+        status: 'published'
+      }])
+      .select().single();
 
-    if (error) {
-      console.error('Supabase insert error:', error);
-      return res.status(500).json({ error: 'Ошибка сохранения заказа в базу: ' + error.message });
-    }
+    if (dbError) throw dbError;
 
-    // Отправка уведомления в Telegram
-    if (TELEGRAM_TOKEN && TELEGRAM_CHAT_ID) {
-      try {
-        await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+    // 2. ПОЛУЧАЕМ ВСЕХ РАБОЧИХ ДЛЯ РАССЫЛКИ
+    const { data: workers } = await supabase.from('workers').select('id').eq('is_banned', false);
+
+    // 3. РАССЫЛКА ПУШЕЙ В ТЕЛЕГРАМ
+    if (workers && workers.length > 0) {
+      const message = `🛠 **НОВЫЙ ЗАКАЗ!**\n\n` +
+                      `📝 Задача: ${service}\n` +
+                      `📍 Адрес: ${address}\n` +
+                      `💰 Оплата: **${worker_price} ₽/час**\n` +
+                      `👥 Нужно: ${workers_needed} чел.\n\n` +
+                      `Заходи в приложение, чтобы принять!`;
+
+      // Рассылаем всем одновременно
+      await Promise.all(workers.map(w => 
+        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            chat_id: TELEGRAM_CHAT_ID,
-            text: `🚀 НОВЫЙ ЗАКАЗ VSH SERVICE:\n\n👤 Имя: ${name}\n📍 Адрес: ${address}\n🔧 Задача: ${task}\n📞 Тел: ${phone}`,
-          }),
-        });
-      } catch (e) {
-        console.error('Telegram error:', e);
-      }
+            chat_id: w.id,
+            text: message,
+            parse_mode: 'Markdown',
+            reply_markup: {
+              inline_keyboard: [[{ text: "🚀 ОТКРЫТЬ ЗАКАЗЫ", url: "https://t.me/ТВОЙ_БОТ_БЕЗ_СОБАЧКИ/app" }]]
+            }
+          })
+        })
+      ));
     }
 
-    return res.status(200).json({ success: true });
-
+    return res.status(200).json({ success: true, order_id: order.id });
   } catch (e) {
-    console.error('Unexpected error:', e);
-    return res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+    return res.status(500).json({ error: e.message });
   }
 }
