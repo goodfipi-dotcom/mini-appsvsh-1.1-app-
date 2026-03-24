@@ -54,7 +54,7 @@ async function initDB() {
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, PATCH, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -81,6 +81,37 @@ export default async function handler(req, res) {
       if (!id) return res.status(400).json({ error: 'Missing order id' });
       await pool.query('DELETE FROM orders WHERE id = $1', [id]);
       return res.status(200).json({ success: true, deleted: id });
+    }
+
+    // ── PATCH — редактировать заказ / одобрить (админ) ──
+    if (req.method === 'PATCH') {
+      const { id, service, task, address, phone, city, comment, workers_needed, status } = req.body;
+      if (!id) return res.status(400).json({ error: 'Missing order id' });
+
+      // Собираем поля для обновления
+      const fields = [];
+      const values = [];
+      let idx = 1;
+
+      if (service !== undefined)        { fields.push(`service = $${idx++}`);        values.push(service); }
+      if (task !== undefined)            { fields.push(`task = $${idx++}`);            values.push(task); }
+      if (address !== undefined)         { fields.push(`address = $${idx++}`);         values.push(address); }
+      if (phone !== undefined)           { fields.push(`phone = $${idx++}`);           values.push(phone); }
+      if (city !== undefined)            { fields.push(`city = $${idx++}`);            values.push(city); }
+      if (comment !== undefined)         { fields.push(`comment = $${idx++}`);         values.push(comment); }
+      if (workers_needed !== undefined)  { fields.push(`workers_needed = $${idx++}`);  values.push(workers_needed); }
+      if (status !== undefined)          { fields.push(`status = $${idx++}`);          values.push(status); }
+
+      if (fields.length === 0) return res.status(400).json({ error: 'No fields to update' });
+
+      values.push(id);
+      const result = await pool.query(
+        `UPDATE orders SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`,
+        values
+      );
+
+      if (result.rowCount === 0) return res.status(404).json({ error: 'Order not found' });
+      return res.status(200).json({ success: true, order: result.rows[0] });
     }
 
     // ── POST ──
