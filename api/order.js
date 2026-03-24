@@ -44,24 +44,17 @@ async function initDB() {
       created_at TIMESTAMP DEFAULT NOW()
     );
   `);
-
-  // Миграция: добавляем колонки если их нет
   const cols = await pool.query(`
-    SELECT column_name FROM information_schema.columns 
-    WHERE table_name = 'orders'
+    SELECT column_name FROM information_schema.columns WHERE table_name = 'orders'
   `);
   const existing = cols.rows.map(r => r.column_name);
-  if (!existing.includes('city')) {
-    await pool.query(`ALTER TABLE orders ADD COLUMN city TEXT DEFAULT 'Октябрьский'`);
-  }
-  if (!existing.includes('phone')) {
-    await pool.query(`ALTER TABLE orders ADD COLUMN phone TEXT DEFAULT ''`);
-  }
+  if (!existing.includes('city'))  await pool.query(`ALTER TABLE orders ADD COLUMN city TEXT DEFAULT 'Октябрьский'`);
+  if (!existing.includes('phone')) await pool.query(`ALTER TABLE orders ADD COLUMN phone TEXT DEFAULT ''`);
 }
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -82,68 +75,84 @@ export default async function handler(req, res) {
       return res.status(200).json(result.rows);
     }
 
-    // ── POST — создать заказ ──
+    // ── DELETE — удалить заказ (только админ) ──
+    if (req.method === 'DELETE') {
+      const { id } = req.query;
+      if (!id) return res.status(400).json({ error: 'Missing order id' });
+      await pool.query('DELETE FROM orders WHERE id = $1', [id]);
+      return res.status(200).json({ success: true, deleted: id });
+    }
+
+    // ── POST ──
     if (req.method === 'POST') {
+      const body = req.body;
+
+      // ── Принятие заявки рабочим (атомарное — защита от двойного принятия) ──
+      if (body.action === 'accept_order') {
+        const { order_id, worker_id } = body;
+        if (!order_id || !worker_id) {
+          return res.status(400).json({ error: 'Missing order_id or worker_id' });
+        }
+        // UPDATE только если status = 'published' — атомарная операция
+        const result = await pool.query(
+          `UPDATE orders 
+           SET status = 'accepted', accepted_by = array_append(accepted_by, $2::text)
+           WHERE id = $1 AND status = 'published'
+           RETURNING *`,
+          [order_id, String(worker_id)]
+        );
+        if (result.rowCount === 0) {
+          return res.status(409).json({ error: 'already_taken', message: 'Заявка уже принята другим рабочим' });
+        }
+        const order = result.rows[0];
+        try {
+          await sendTG(ADMIN_ID,
+            `👷 <b>Заявка №${order_id} принята!</b>\n` +
+            `Рабочий ID: ${worker_id}\n` +
+            `🔧 ${order.service || order.task}\n📍 ${order.city}, ${order.address}`
+          );
+        } catch (e) {}
+        return res.status(200).json({ success: true, phone: order.phone, order });
+      }
+
+      // ── Создание заказа ──
       const {
         name, address, task, phone, source, service,
         city, client_price, worker_price, margin,
         comment, workers_needed
-      } = req.body;
+      } = body;
 
       if (source === 'admin') {
-        // ── Заказ от админа — сразу публикуем в БД ──
-        // Рассылку рабочим НЕ делаем здесь — её делает бот (bot.py)
-        // чтобы не было двойных уведомлений
         const result = await pool.query(
           `INSERT INTO orders (service, address, phone, city, client_price, worker_price, margin, workers_needed, comment, status)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'published') RETURNING id`,
-          [
-            service || task || '',
-            address || '',
-            phone || '',
-            city || 'Октябрьский',
-            client_price || 0,
-            worker_price || 0,
-            margin || 0,
-            workers_needed || 1,
-            comment || ''
-          ]
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'published') RETURNING id`,
+          [service || task || '', address || '', phone || '', city || 'Октябрьский',
+           client_price || 0, worker_price || 0, margin || 0, workers_needed || 1, comment || '']
         );
-        const orderId = result.rows[0].id;
-
-        return res.status(200).json({ success: true, orderId });
-
+        return res.status(200).json({ success: true, orderId: result.rows[0].id });
       } else {
-        // ── Заявка от клиента (с будущего сайта) ──
+        // Заявка от заказчика (с сайта)
         const result = await pool.query(
           `INSERT INTO orders (name, address, task, phone, city, status)
-           VALUES ($1, $2, $3, $4, $5, 'waiting_admin') RETURNING id`,
+           VALUES ($1,$2,$3,$4,$5,'waiting_admin') RETURNING id`,
           [name || '', address || '', task || '', phone || '', city || 'Октябрьский']
         );
         const orderId = result.rows[0].id;
-
-        // Уведомление админу с кнопками
         try {
           await sendTG(ADMIN_ID,
-            `🔔 <b>НОВАЯ ЗАЯВКА №${orderId}</b>\n\n` +
-            `👤 ${name}\n📍 ${address}\n🔧 ${task}\n📞 ${phone}`,
-            {
-              inline_keyboard: [[
-                { text: '✅ ОДОБРИТЬ', callback_data: `approve_${orderId}` },
-                { text: '❌ ОТКЛОНИТЬ', callback_data: `reject_${orderId}` }
-              ]]
-            }
+            `🔔 <b>НОВАЯ ЗАЯВКА №${orderId} С САЙТА</b>\n\n` +
+            `👤 ${name}\n📍 ${city}, ${address}\n🔧 ${task}\n📞 ${phone}`,
+            { inline_keyboard: [[
+              { text: '✅ ОДОБРИТЬ', callback_data: `approve:${orderId}` },
+              { text: '❌ ОТКЛОНИТЬ', callback_data: `reject:${orderId}` }
+            ]] }
           );
-        } catch (e) {
-          console.error('Admin notify error:', e.message);
-        }
-
+        } catch (e) { console.error('Admin notify error:', e.message); }
         return res.status(200).json({ success: true, orderId });
       }
     }
 
     return res.status(405).json({ error: 'Method not allowed' });
-
   } catch (err) {
     console.error('Order API error:', err);
     return res.status(500).json({ error: err.message });
