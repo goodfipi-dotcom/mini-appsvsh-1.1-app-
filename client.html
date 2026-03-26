@@ -336,6 +336,73 @@ textarea.form-input { height: 100px; resize: none; }
 .portfolio-desc { font-size: 13px; opacity: .8; line-height: 1.5; }
 
 .reception-cta { text-align: center; padding: 40px 20px 20px; }
+
+/* ── CLIENT PROFILE ── */
+.client-profile { max-width: 600px; margin: 0 auto; padding: 32px 20px; }
+.cp-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 28px; box-shadow: var(--shadow-lg); text-align: center; margin-bottom: 20px;
+}
+.cp-level { font-size: 40px; margin-bottom: 8px; }
+.cp-name { font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+.cp-level-name { font-size: 14px; color: var(--accent); font-weight: 600; margin-bottom: 16px; }
+.cp-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+.cp-stat { background: var(--bg); border-radius: 12px; padding: 14px 8px; }
+.cp-stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 24px; color: var(--accent); }
+.cp-stat-lbl { font-size: 10px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+.cp-progress { margin-bottom: 16px; }
+.cp-progress-bar { height: 8px; background: #e2e8f0; border-radius: 100px; overflow: hidden; }
+.cp-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #6366f1); border-radius: 100px; transition: width 1s ease; }
+.cp-progress-text { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+/* ── REFERRAL ── */
+.ref-card {
+  background: linear-gradient(135deg, #eff6ff, #f0f9ff); border: 1px solid #bfdbfe;
+  border-radius: var(--radius); padding: 24px; text-align: center; margin-bottom: 20px;
+}
+.ref-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: #1e40af; margin-bottom: 8px; }
+.ref-sub { font-size: 13px; color: #3b82f6; margin-bottom: 16px; line-height: 1.5; }
+.ref-link-box {
+  display: flex; gap: 8px; margin-bottom: 16px;
+}
+.ref-link-input {
+  flex: 1; padding: 12px; background: white; border: 1.5px solid #93c5fd; border-radius: 10px;
+  font-family: 'Outfit', sans-serif; font-size: 13px; color: #1e40af; font-weight: 600;
+}
+.ref-copy-btn {
+  padding: 12px 16px; background: #2563eb; color: white; border: none; border-radius: 10px;
+  font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap;
+}
+.ref-copy-btn:active { transform: scale(.95); }
+.ref-qr { margin: 16px auto; display: block; border-radius: 12px; border: 3px solid white; box-shadow: var(--shadow); }
+.ref-share-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 28px; background: #10b981; color: white; border: none; border-radius: 100px;
+  font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer;
+  margin-top: 12px;
+}
+
+/* ── LOYALTY LEVELS ── */
+.loyalty-section { max-width: 600px; margin: 0 auto; padding: 0 20px 32px; }
+.loyalty-grid { display: flex; flex-direction: column; gap: 10px; }
+.loyalty-item {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 14px 16px; transition: all .2s;
+}
+.loyalty-item.current { border-color: var(--accent); background: #f0f9ff; }
+.loyalty-item.locked { opacity: .5; }
+.loyalty-icon { font-size: 28px; flex-shrink: 0; }
+.loyalty-info { flex: 1; }
+.loyalty-name { font-size: 14px; font-weight: 700; color: var(--text); }
+.loyalty-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.loyalty-stars { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--accent); }
+
+/* ── REVIEW FORM ── */
+.review-section { max-width: 600px; margin: 0 auto; padding: 0 20px 32px; }
+.review-stars { display: flex; gap: 8px; justify-content: center; margin: 12px 0; }
+.review-star { font-size: 32px; cursor: pointer; opacity: .3; filter: grayscale(1); transition: all .2s; }
+.review-star.active { opacity: 1; filter: none; transform: scale(1.1); }
 </style>
 </head>
 <body>
@@ -497,6 +564,69 @@ textarea.form-input { height: 100px; resize: none; }
     <p style="color:var(--muted);margin-bottom:20px;font-size:15px">Свяжитесь с нами — мы всегда на связи</p>
     <a href="#order" class="hero-btn" onclick="document.getElementById('reception').classList.add('hidden');document.getElementById('form-card').style.display='block'">📝 Оставить ещё одну заявку</a>
   </div>
+
+  <!-- ПРОФИЛЬ ЗАКАЗЧИКА -->
+  <div class="client-profile" id="client-profile">
+    <div class="cp-card">
+      <div class="cp-level" id="cp-level-icon">🆕</div>
+      <div class="cp-name" id="cp-name">—</div>
+      <div class="cp-level-name" id="cp-level-name">Новичок</div>
+      <div class="cp-stats">
+        <div class="cp-stat"><div class="cp-stat-val" id="cp-orders">0</div><div class="cp-stat-lbl">Заказов</div></div>
+        <div class="cp-stat"><div class="cp-stat-val" id="cp-stars">0⭐</div><div class="cp-stat-lbl">Баллов</div></div>
+        <div class="cp-stat"><div class="cp-stat-val" id="cp-refs">0</div><div class="cp-stat-lbl">Друзей</div></div>
+      </div>
+      <div class="cp-progress">
+        <div class="cp-progress-bar"><div class="cp-progress-fill" id="cp-progress" style="width:0%"></div></div>
+        <div class="cp-progress-text" id="cp-progress-text">Приглашайте друзей чтобы расти</div>
+      </div>
+    </div>
+
+    <!-- РЕФЕРАЛЬНАЯ СИСТЕМА -->
+    <div class="ref-card" id="ref-card">
+      <div class="ref-title">🎁 Приглашай друзей — получай баллы!</div>
+      <div class="ref-sub">+3⭐ за каждого друга · +5⭐ когда друг сделает заказ<br>5 приглашений = бонус +10⭐</div>
+      <div class="ref-link-box">
+        <input type="text" class="ref-link-input" id="ref-link" readonly value="Загрузка...">
+        <button class="ref-copy-btn" onclick="copyRefLink()">📋 Копировать</button>
+      </div>
+      <canvas id="ref-qr" class="ref-qr" width="160" height="160"></canvas>
+      <br>
+      <button class="ref-share-btn" onclick="shareRefLink()">📤 Поделиться с друзьями</button>
+    </div>
+  </div>
+
+  <!-- УРОВНИ ЛОЯЛЬНОСТИ -->
+  <div class="loyalty-section">
+    <div class="reception-section-title">🏆 Уровни лояльности</div>
+    <div class="loyalty-grid" id="loyalty-grid">
+      <div class="loyalty-item current"><div class="loyalty-icon">🆕</div><div class="loyalty-info"><div class="loyalty-name">Новичок</div><div class="loyalty-desc">Добро пожаловать в VSH Service</div></div><div class="loyalty-stars">0⭐</div></div>
+      <div class="loyalty-item locked"><div class="loyalty-icon">👍</div><div class="loyalty-info"><div class="loyalty-name">Знакомый клиент</div><div class="loyalty-desc">5 баллов — постоянные скидки ближе</div></div><div class="loyalty-stars">5⭐</div></div>
+      <div class="loyalty-item locked"><div class="loyalty-icon">⭐</div><div class="loyalty-info"><div class="loyalty-name">Активный клиент</div><div class="loyalty-desc">15 баллов — приоритетная обработка</div></div><div class="loyalty-stars">15⭐</div></div>
+      <div class="loyalty-item locked"><div class="loyalty-icon">🌟</div><div class="loyalty-info"><div class="loyalty-name">Постоянный клиент</div><div class="loyalty-desc">30 баллов — спецпредложения</div></div><div class="loyalty-stars">30⭐</div></div>
+      <div class="loyalty-item locked"><div class="loyalty-icon">🔥</div><div class="loyalty-info"><div class="loyalty-name">Лояльный клиент</div><div class="loyalty-desc">50 баллов — VIP-обслуживание скоро</div></div><div class="loyalty-stars">50⭐</div></div>
+      <div class="loyalty-item locked"><div class="loyalty-icon">💎</div><div class="loyalty-info"><div class="loyalty-name">VIP-клиент</div><div class="loyalty-desc">100 баллов — максимальные привилегии</div></div><div class="loyalty-stars">100⭐</div></div>
+    </div>
+  </div>
+
+  <!-- ФОРМА ОТЗЫВА (скрыта, появляется по ссылке) -->
+  <div class="review-section hidden" id="review-section">
+    <div class="reception-section-title">✍️ Оставить отзыв</div>
+    <div class="form-card">
+      <label class="form-label">Оценка работы</label>
+      <div class="review-stars" id="review-stars">
+        <span class="review-star" onclick="setReviewStars(1)">⭐</span>
+        <span class="review-star" onclick="setReviewStars(2)">⭐</span>
+        <span class="review-star" onclick="setReviewStars(3)">⭐</span>
+        <span class="review-star" onclick="setReviewStars(4)">⭐</span>
+        <span class="review-star" onclick="setReviewStars(5)">⭐</span>
+      </div>
+      <label class="form-label">Ваш отзыв</label>
+      <textarea class="form-input" id="review-text" placeholder="Расскажите как прошла работа..."></textarea>
+      <button class="form-btn" onclick="submitReview()">📝 Отправить отзыв</button>
+      <div class="form-msg" id="review-msg"></div>
+    </div>
+  </div>
 </section>
 
 <!-- FOOTER -->
@@ -556,6 +686,10 @@ async function submitOrder() {
       document.getElementById('form-card').style.display = 'none';
       document.getElementById('reception').classList.remove('hidden');
       window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Регистрируем клиента и загружаем профиль
+      registerClient(name, phone, city);
+
       // Очищаем форму на случай повторного использования
       ['f-name', 'f-phone', 'f-task', 'f-address'].forEach(id => document.getElementById(id).value = '');
     } else {
@@ -583,6 +717,168 @@ document.getElementById('f-phone').addEventListener('input', function(e) {
   if (v.length > 7) f += '-' + v.slice(7, 9);
   if (v.length > 9) f += '-' + v.slice(9, 11);
   this.value = f;
+});
+
+// ── РЕФЕРАЛЬНАЯ СИСТЕМА ──
+
+// Получаем ref из URL (если пришёл по реферальной ссылке)
+const urlParams = new URLSearchParams(window.location.search);
+const refFromUrl = urlParams.get('ref') || '';
+
+let currentClient = null;
+let reviewStars = 0;
+
+async function registerClient(name, phone, city) {
+  // Сохраняем телефон для возврата на сайт
+  const cleanPhone = phone.replace(/\D/g, '');
+  sessionStorage.setItem('vsh_client_phone', cleanPhone);
+
+  try {
+    const res = await fetch(API + '/api/client', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'get_or_create',
+        phone: phone,
+        name: name,
+        city: city || 'Октябрьский',
+        ref: refFromUrl
+      })
+    });
+    const data = await res.json();
+    if (data.success && data.client) {
+      currentClient = data.client;
+      updateClientProfile(data.client);
+    }
+  } catch (e) {
+    console.error('Register client error:', e);
+  }
+}
+
+function updateClientProfile(c) {
+  document.getElementById('cp-name').textContent = c.name || 'Заказчик';
+  document.getElementById('cp-level-icon').textContent = c.level_icon || '🆕';
+  document.getElementById('cp-level-name').textContent = c.level_name || 'Новичок';
+  document.getElementById('cp-orders').textContent = c.total_orders || 0;
+  document.getElementById('cp-stars').textContent = (c.stars || 0) + '⭐';
+  document.getElementById('cp-refs').textContent = c.total_referrals || 0;
+
+  // Прогресс
+  const stars = c.stars || 0;
+  const levels = [0, 5, 15, 30, 50, 100];
+  let curIdx = 0;
+  for (let i = 0; i < levels.length; i++) {
+    if (stars >= levels[i]) curIdx = i;
+  }
+  const nextStars = levels[curIdx + 1] || levels[levels.length - 1];
+  const prevStars = levels[curIdx];
+  const pct = nextStars > prevStars ? Math.min(100, Math.round((stars - prevStars) / (nextStars - prevStars) * 100)) : 100;
+  document.getElementById('cp-progress').style.width = pct + '%';
+  document.getElementById('cp-progress-text').textContent =
+    curIdx < levels.length - 1
+      ? 'Ещё ' + (nextStars - stars) + '⭐ до следующего уровня'
+      : '💎 Максимальный уровень!';
+
+  // Реферальная ссылка
+  const baseUrl = window.location.origin + window.location.pathname;
+  const refLink = baseUrl + '?ref=' + (c.ref_code || 'VSH');
+  document.getElementById('ref-link').value = refLink;
+
+  // QR-код
+  drawQR(refLink);
+
+  // Подсветка текущего уровня
+  updateLoyaltyGrid(stars);
+}
+
+function updateLoyaltyGrid(stars) {
+  const items = document.querySelectorAll('.loyalty-item');
+  const thresholds = [0, 5, 15, 30, 50, 100];
+  items.forEach((item, i) => {
+    item.classList.remove('current', 'locked');
+    const isReached = stars >= thresholds[i];
+    const isNext = i < thresholds.length - 1 && stars < thresholds[i + 1];
+    if (isReached && (isNext || i === thresholds.length - 1)) {
+      item.classList.add('current');
+    } else if (!isReached) {
+      item.classList.add('locked');
+    }
+  });
+}
+
+function copyRefLink() {
+  const input = document.getElementById('ref-link');
+  input.select();
+  navigator.clipboard.writeText(input.value).then(() => {
+    const btn = document.querySelector('.ref-copy-btn');
+    btn.textContent = '✅ Скопировано!';
+    setTimeout(() => btn.textContent = '📋 Копировать', 2000);
+  }).catch(() => { document.execCommand('copy'); });
+}
+
+function shareRefLink() {
+  const link = document.getElementById('ref-link').value;
+  const text = '💪 VSH Service — рабочие руки за 30 минут! Без посредников, дешевле Авито. Попробуй: ' + link;
+  if (navigator.share) {
+    navigator.share({ title: 'VSH Service', text: text, url: link }).catch(() => {});
+  } else {
+    copyRefLink();
+  }
+}
+
+// QR-код через внешний API
+function drawQR(url) {
+  const canvas = document.getElementById('ref-qr');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const size = 160;
+  canvas.width = size; canvas.height = size;
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => { ctx.fillStyle = 'white'; ctx.fillRect(0, 0, size, size); ctx.drawImage(img, 8, 8, size - 16, size - 16); };
+  img.onerror = () => { ctx.fillStyle = '#f0f9ff'; ctx.fillRect(0, 0, size, size); ctx.fillStyle = '#2563eb'; ctx.font = 'bold 12px Outfit'; ctx.textAlign = 'center'; ctx.fillText('Скопируйте ссылку', size / 2, size / 2); };
+  img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(url);
+}
+
+// ── ОТЗЫВЫ ──
+function setReviewStars(n) {
+  reviewStars = n;
+  document.querySelectorAll('.review-star').forEach((s, i) => s.classList.toggle('active', i < n));
+}
+
+async function submitReview() {
+  if (!reviewStars) { alert('Выберите оценку'); return; }
+  const text = document.getElementById('review-text').value.trim();
+  const msgEl = document.getElementById('review-msg');
+  try {
+    const res = await fetch(API + '/api/client', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'review', client_phone: currentClient?.phone || '', client_name: currentClient?.name || '', rating: reviewStars, text: text })
+    });
+    const data = await res.json();
+    if (data.success) {
+      msgEl.className = 'form-msg success'; msgEl.textContent = '✅ Спасибо за отзыв! +2⭐ начислено'; msgEl.style.display = 'block';
+      reviewStars = 0; document.getElementById('review-text').value = '';
+      document.querySelectorAll('.review-star').forEach(s => s.classList.remove('active'));
+    }
+  } catch (e) { msgEl.className = 'form-msg error'; msgEl.textContent = '❌ Ошибка: ' + e.message; msgEl.style.display = 'block'; }
+}
+
+// Показываем форму отзыва если ?review=1 в URL
+if (urlParams.get('review') === '1') {
+  window.addEventListener('load', () => { document.getElementById('review-section')?.classList.remove('hidden'); });
+}
+
+// Автозагрузка профиля если клиент уже был на сайте
+window.addEventListener('load', () => {
+  const savedPhone = sessionStorage.getItem('vsh_client_phone');
+  if (savedPhone) {
+    fetch(API + '/api/client?action=profile&phone=' + encodeURIComponent(savedPhone))
+      .then(r => r.json())
+      .then(data => { if (data.success && data.client) { currentClient = data.client; updateClientProfile(data.client); } })
+      .catch(() => {});
+  }
 });
 </script>
 </body>
