@@ -178,6 +178,43 @@ textarea.input{height:80px;resize:none}
 .admin-order-detail span{color:var(--text)}
 .admin-section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin:16px 0 8px;padding-left:4px}
 .admin-section-label.waiting{color:var(--warn)}
+
+/* GOLD/ELITE ORDERS */
+.gold-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);border-radius:100px;padding:3px 10px;font-size:10px;font-weight:700;color:var(--gold)}
+.elite-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.3);border-radius:100px;padding:3px 10px;font-size:10px;font-weight:700;color:#a78bfa}
+.locked-overlay{position:relative}
+.locked-overlay::after{content:'🔒';position:absolute;inset:0;background:rgba(6,8,16,.7);backdrop-filter:blur(4px);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:32px}
+.tier-tab{flex:1;padding:10px 6px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid var(--border);font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;text-align:center;transition:all .2s}
+.tier-tab.active{background:rgba(56,189,248,.12);border-color:var(--accent);color:var(--accent)}
+.tier-tab.gold.active{background:rgba(245,158,11,.12);border-color:var(--gold);color:var(--gold)}
+.tier-tab.elite.active{background:rgba(139,92,246,.12);border-color:#a78bfa;color:#a78bfa}
+
+/* CHAT */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 140px)}
+.chat-messages{flex:1;overflow-y:auto;padding:8px 0;display:flex;flex-direction:column;gap:6px}
+.chat-msg{max-width:80%;padding:10px 14px;border-radius:14px;font-size:13px;line-height:1.5;animation:fadeUp .3s ease both}
+.chat-msg.mine{align-self:flex-end;background:rgba(56,189,248,.15);border:1px solid rgba(56,189,248,.2);color:var(--text);border-bottom-right-radius:4px}
+.chat-msg.other{align-self:flex-start;background:var(--card);border:1px solid var(--border);color:var(--text);border-bottom-left-radius:4px}
+.chat-msg-name{font-size:10px;font-weight:700;color:var(--accent);margin-bottom:2px}
+.chat-msg-time{font-size:9px;color:var(--muted);margin-top:3px;text-align:right}
+.chat-input-wrap{display:flex;gap:8px;padding:8px 0}
+.chat-input{flex:1;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-family:'Manrope',sans-serif;font-size:14px;outline:none}
+.chat-input:focus{border-color:rgba(56,189,248,.4)}
+.chat-send{width:44px;height:44px;border-radius:12px;background:var(--accent);border:none;color:#060810;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+/* WORKER PROFILE CARD */
+.wp-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;cursor:pointer;transition:all .2s}
+.wp-card:active{transform:scale(.98)}
+.wp-header{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.wp-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#6366f1);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff;flex-shrink:0}
+.wp-name{font-size:16px;font-weight:700;color:#fff}
+.wp-rank{font-size:12px;color:var(--gold)}
+.wp-stats{display:flex;gap:16px;font-size:12px;color:var(--muted)}
+.wp-stats b{color:var(--text)}
+
+/* REFERRAL (workers) */
+.ref-worker-card{background:linear-gradient(135deg,rgba(56,189,248,.06),rgba(99,102,241,.06));border:1px solid rgba(56,189,248,.15);border-radius:16px;padding:20px;text-align:center;margin-bottom:12px}
+.ref-worker-code{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:4px;color:var(--accent);margin:8px 0}
 .status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .status-published{background:var(--success)}
 .status-accepted{background:var(--warn)}
@@ -268,14 +305,30 @@ textarea.input{height:80px;resize:none}
       <div class="worker-chip"><div class="chip-avatar" id="header-avatar">?</div><div class="chip-rank" id="header-rank">—</div></div>
     </div>
     <div style="padding:0 16px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-        <div class="section-title" style="margin:0">Активные заявки</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="section-title" style="margin:0">Заявки</div>
         <button class="btn btn-outline btn-sm" style="width:auto;gap:6px" onclick="loadOrders()">
           <svg width="13" height="13" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2.5"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
           Обновить
         </button>
       </div>
+      <!-- Вкладки уровней заявок -->
+      <div style="display:flex;gap:6px;margin-bottom:14px">
+        <div class="tier-tab active" onclick="switchOrderTier(this,'all')">📋 Все</div>
+        <div class="tier-tab gold" onclick="switchOrderTier(this,'gold')">🏆 Золотые</div>
+        <div class="tier-tab elite" onclick="switchOrderTier(this,'elite')">💎 Элитные</div>
+      </div>
       <div id="orders-list"></div>
+      <div id="gold-locked-msg" class="hidden" style="text-align:center;padding:32px 0">
+        <div style="font-size:36px;margin-bottom:8px">🔒</div>
+        <div style="font-size:14px;font-weight:700;color:var(--muted)">Доступ от звания Бригадир (35⭐)</div>
+        <div style="font-size:12px;color:var(--muted);opacity:.6;margin-top:4px">Выполняйте заявки и растите в рейтинге</div>
+      </div>
+      <div id="elite-locked-msg" class="hidden" style="text-align:center;padding:32px 0">
+        <div style="font-size:36px;margin-bottom:8px">💎</div>
+        <div style="font-size:14px;font-weight:700;color:#a78bfa">Элитные заявки — скоро</div>
+        <div style="font-size:12px;color:var(--muted);opacity:.6;margin-top:4px">Подписка VSH PRO откроется в ближайшее время</div>
+      </div>
     </div>
   </div>
 
@@ -328,6 +381,19 @@ textarea.input{height:80px;resize:none}
             <span>WhatsApp — Рабочий чат</span>
           </a>
         </div>
+      </div>
+
+      <!-- РЕФЕРАЛЬНАЯ СИСТЕМА РАБОЧИХ -->
+      <div class="ref-worker-card">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Пригласи друга — получи +3⭐</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:#fff;margin-bottom:8px">Твой код приглашения:</div>
+        <div class="ref-worker-code" id="worker-ref-code">—</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6">
+          Друг вводит твой код при регистрации → ты получаешь +3⭐<br>
+          Друг выполняет первый заказ → ещё +5⭐<br>
+          5 приглашений → бонус повышения звания!
+        </div>
+        <button class="btn btn-outline btn-sm" style="margin-top:12px" onclick="copyWorkerRef()">📋 Скопировать код</button>
       </div>
 
       <div class="card">
@@ -421,7 +487,55 @@ textarea.input{height:80px;resize:none}
       <div class="nav-icon-wrap"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
       <span class="nav-label">Админ</span>
     </div>
+    <div class="nav-item" onclick="switchTab('chat')" id="nav-chat">
+      <div class="nav-icon-wrap"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+      <span class="nav-label">Чат</span>
+    </div>
   </nav>
+</div>
+
+<!-- GOLD ORDERS PAGE -->
+<div id="gold-page" class="page hidden">
+  <div class="app-header"><div class="header-logo">VSH<span>.</span></div><div style="font-size:11px;color:var(--gold);font-weight:700;letter-spacing:1px">🏆 ЗОЛОТЫЕ ЗАЯВКИ</div></div>
+  <div style="padding:0 16px">
+    <div class="card" style="background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(245,158,11,.02));border-color:rgba(245,158,11,.2)">
+      <div class="section-title" style="color:var(--gold)">🏆 Золотые заявки</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Доступны рабочим от звания <b style="color:var(--gold)">👷 Бригадир (35⭐)</b>. Лучшие заказы с повышенной оплатой.</p>
+      <div id="gold-orders-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ELITE ORDERS PAGE (заготовка — будущая подписка) -->
+<div id="elite-page" class="page hidden">
+  <div class="app-header"><div class="header-logo">VSH<span>.</span></div><div style="font-size:11px;color:#a78bfa;font-weight:700;letter-spacing:1px">💎 ЭЛИТНЫЕ ЗАЯВКИ</div></div>
+  <div style="padding:0 16px">
+    <div class="card" style="background:linear-gradient(135deg,rgba(139,92,246,.08),rgba(139,92,246,.02));border-color:rgba(139,92,246,.2)">
+      <div class="section-title" style="color:#a78bfa">💎 Элитные заявки</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Самые прибыльные заказы для настоящих профессионалов.</p>
+      <div style="text-align:center;padding:32px 0">
+        <div style="font-size:48px;margin-bottom:12px;opacity:.4">🔒</div>
+        <div style="font-size:15px;font-weight:700;color:var(--muted);margin-bottom:6px">Скоро открытие</div>
+        <div style="font-size:13px;color:var(--muted);opacity:.6">Элитные заявки откроются для подписчиков VSH PRO</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT PAGE -->
+<div id="chat-page" class="page hidden">
+  <div class="app-header"><div class="header-logo">VSH<span>.</span></div><div style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:1px">💬 ЧАТ БРИГАДЫ</div></div>
+  <div style="padding:0 16px">
+    <div class="chat-wrap">
+      <div class="chat-messages" id="chat-messages">
+        <div style="text-align:center;padding:20px;font-size:12px;color:var(--muted)">Добро пожаловать в чат бригады VSH! Общайтесь, помогайте друг другу.</div>
+      </div>
+      <div class="chat-input-wrap">
+        <input type="text" class="chat-input" id="chat-input" placeholder="Написать в чат..." maxlength="300">
+        <button class="chat-send" onclick="sendChatMsg()">➤</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL: RULES -->
@@ -440,7 +554,8 @@ textarea.input{height:80px;resize:none}
       <div class="rule-item"><div class="rule-num">1</div><div>Явка на заявку <b>обязательна</b>. Принял — значит едешь.</div></div>
       <div class="rule-item"><div class="rule-num">2</div><div>Прибыть на место не позже указанного времени.</div></div>
       <div class="rule-item"><div class="rule-num">3</div><div>Вести себя профессионально, трезво и вежливо.</div></div>
-      <div class="rule-item"><div class="rule-num">4</div><div>После выполнения — подтвердить завершение в приложении.</div></div>
+      <div class="rule-item"><div class="rule-num">4</div><div>При звонке заказчику представляйтесь: <b style="color:var(--accent)">«Здравствуйте, [Имя]! Это [Ваше имя], сервис VSH. Звоню по вашей заявке.»</b></div></div>
+      <div class="rule-item"><div class="rule-num">5</div><div>После выполнения — подтвердить завершение в приложении.</div></div>
       <div class="rule-item"><div class="rule-num rule-danger">!</div><div style="color:var(--danger)"><b>Не явился без предупреждения = бан навсегда.</b> Заказчик ждёт — не подставляй команду.</div></div>
     </div>
     <button class="btn btn-primary" id="btn-rules-confirm" onclick="rulesConfirmed()" disabled>✅ Ознакомлен, подтверждаю</button>
@@ -525,6 +640,16 @@ textarea.input{height:80px;resize:none}
     <button class="btn btn-primary" onclick="saveEditOrder()">💾 Сохранить изменения</button>
     <button class="btn btn-success" style="margin-top:8px" id="btn-edit-publish" onclick="approveAndPublish()">✅ Одобрить и опубликовать</button>
     <button class="btn btn-outline" style="margin-top:8px" onclick="closeModal('modal-edit')">Отмена</button>
+  </div>
+</div>
+
+<!-- MODAL: WORKER PROFILE VIEW -->
+<div id="modal-worker-profile" class="modal-overlay hidden">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">👷 Профиль рабочего</div>
+    <div id="wp-view-content"></div>
+    <button class="btn btn-outline" style="margin-top:12px" onclick="closeModal('modal-worker-profile')">Закрыть</button>
   </div>
 </div>
 
@@ -626,9 +751,33 @@ function updateHeaderUI(){if(!currentWorker)return;const rank=getRank(currentWor
 
 // TABS
 function switchTab(tab){
-  ['feed','profile','leaderboard','admin'].forEach(t=>{document.getElementById(t+'-page').classList.add('hidden');document.getElementById('nav-'+t)?.classList.remove('active')});
-  document.getElementById(tab+'-page').classList.remove('hidden');document.getElementById('nav-'+tab)?.classList.add('active');
+  ['feed','profile','leaderboard','admin','chat','gold','elite'].forEach(t=>{document.getElementById(t+'-page')?.classList.add('hidden');document.getElementById('nav-'+t)?.classList.remove('active')});
+  document.getElementById(tab+'-page')?.classList.remove('hidden');document.getElementById('nav-'+tab)?.classList.add('active');
   if(tab==='profile')loadProfile();if(tab==='leaderboard')loadLeaderboard();if(tab==='admin'){loadAdminWorkers();loadAdminOrders()}
+  if(tab==='chat')loadChat();
+}
+
+// Переключатель уровня заявок
+let currentOrderTier = 'all';
+function switchOrderTier(el, tier) {
+  document.querySelectorAll('.tier-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentOrderTier = tier;
+
+  const ordersList = document.getElementById('orders-list');
+  const goldMsg = document.getElementById('gold-locked-msg');
+  const eliteMsg = document.getElementById('elite-locked-msg');
+  goldMsg.classList.add('hidden'); eliteMsg.classList.add('hidden'); ordersList.classList.remove('hidden');
+
+  if (tier === 'gold') {
+    const stars = currentWorker?.stars || 0;
+    if (stars < 35) { ordersList.classList.add('hidden'); goldMsg.classList.remove('hidden'); return; }
+    loadOrders('gold');
+  } else if (tier === 'elite') {
+    ordersList.classList.add('hidden'); eliteMsg.classList.remove('hidden');
+  } else {
+    loadOrders();
+  }
 }
 
 // ORDERS (feed)
@@ -732,6 +881,8 @@ function loadProfile(){
   document.getElementById('prog-next').textContent=prog.nextName!=='Максимум'?prog.nextName+' →':'👑 Максимум';
   document.getElementById('prog-hint').textContent=prog.needed>0?'Ещё '+prog.needed+' ⭐ до следующего звания':'🏆 Высшее звание!';
   document.getElementById('bank-details').value=currentWorker.bank_details||'';
+  // Реферальный код
+  document.getElementById('worker-ref-code').textContent = generateWorkerRefCode();
   const grid=document.getElementById('ach-grid');
   grid.innerHTML=ACHIEVEMENTS.map(a=>{const earned=a.check(currentWorker);return'<div class="ach-item '+(earned?'earned':'')+'"><div class="ach-icon">'+a.icon+'</div><div class="ach-name">'+a.name+'</div><div class="ach-desc">'+(earned?a.desc:'🔒 Заблокировано')+'</div></div>'}).join('');
   loadLeaderboardForRank();
@@ -757,19 +908,45 @@ async function loadLeaderboard(){
   if(!data||data.error||!Array.isArray(data)||!data.length){
     list.innerHTML='<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">Рейтинг пуст</div></div>';return;
   }
+  allLeaderboardData = data;
   data.forEach((w,i)=>{if(currentWorker&&String(w.id)===String(currentWorker.id))currentWorker._place=i+1});
   const medals=['pos-gold','pos-silver','pos-bronze'],trophies=['🥇','🥈','🥉'];
-  list.innerHTML=data.slice(0,20).map((w,i)=>{
+  list.innerHTML=data.slice(0,30).map((w,i)=>{
     const isMe=currentWorker&&String(w.id)===String(currentWorker.id);const rank=getRank(w.stars||0);
-    const uname=w.telegram_username?'@'+w.telegram_username:'';
-    return'<div class="lb-item '+(isMe?'me':'')+' '+(i===0?'top1':'')+'" style="animation-delay:'+(i*0.05)+'s">'
-      +'<div class="lb-pos '+(medals[i]||'')+'">'+(trophies[i]||(i+1))+'</div>'
+    const uname=w.telegram_username?'@'+escapeHtml(w.telegram_username):'';
+    return'<div class="lb-item '+(isMe?'me':'')+' '+(i===0?'top1':'')+'" style="animation-delay:'+(i*0.05)+'s;cursor:pointer" onclick="viewWorkerProfile('+i+')">'
+      +'<div class="lb-pos '+(medals[i]||'')+'">'+(trophies[i]||('#'+(i+1)))+'</div>'
       +'<div class="lb-avatar">'+getInitials(w.name)+'</div>'
-      +'<div class="lb-info"><div class="lb-name">'+(w.name||'Рабочий')+(isMe?' <span style="color:var(--accent);font-size:10px">(Вы)</span>':'')+'</div>'
+      +'<div class="lb-info"><div class="lb-name">'+escapeHtml(w.name||'Рабочий')+(isMe?' <span style="color:var(--accent);font-size:10px">(Вы)</span>':'')+'</div>'
       +(uname?'<div class="lb-username">'+uname+'</div>':'')
       +'<div class="lb-rank-tag">'+rank.name+' · '+(w.total_orders||0)+' заявок</div></div>'
       +'<div class="lb-score">'+(w.stars||0)+'⭐</div></div>'
   }).join('');
+}
+
+let allLeaderboardData = [];
+
+function viewWorkerProfile(index) {
+  const w = allLeaderboardData[index];
+  if (!w) return;
+  const rank = getRank(w.stars || 0);
+  const prog = getProgress(w.stars || 0);
+  const content = document.getElementById('wp-view-content');
+  content.innerHTML =
+    '<div style="text-align:center;margin-bottom:16px">'
+    +'<div class="wp-avatar" style="width:64px;height:64px;font-size:22px;margin:0 auto 10px">'+getInitials(w.name)+'</div>'
+    +'<div style="font-size:18px;font-weight:800;color:#fff">'+escapeHtml(w.name||'Рабочий')+'</div>'
+    +(w.telegram_username?'<div style="font-size:12px;color:var(--accent)">@'+escapeHtml(w.telegram_username)+'</div>':'')
+    +'<div class="rank-pill" style="margin-top:8px">'+rank.name+'</div>'
+    +'</div>'
+    +'<div class="stats-grid" style="margin-bottom:16px">'
+    +'<div class="stat-box"><div class="stat-val">'+(w.total_orders||0)+'</div><div class="stat-lbl">Заявок</div></div>'
+    +'<div class="stat-box"><div class="stat-val">'+(w.stars||0)+'⭐</div><div class="stat-lbl">Звёзд</div></div>'
+    +'<div class="stat-box"><div class="stat-val">#'+(index+1)+'</div><div class="stat-lbl">Место</div></div>'
+    +'</div>'
+    +'<div class="progress-wrap"><div class="progress-labels"><span>'+rank.name+'</span><span>'+(prog.nextName!=='Максимум'?prog.nextName+' →':'👑 Макс')+'</span></div>'
+    +'<div class="progress-bar"><div class="progress-fill" style="width:'+prog.pct+'%"></div></div></div>';
+  document.getElementById('modal-worker-profile').classList.remove('hidden');
 }
 
 // ADMIN
@@ -1009,6 +1186,79 @@ async function giveStars(){
 }
 
 function showRankUp(rankName,icon){const o=document.createElement('div');o.className='rankup-overlay';o.innerHTML='<div class="rankup-card"><div class="rankup-icon">'+icon+'</div><div class="rankup-title">НОВОЕ ЗВАНИЕ!</div><div class="rankup-rank">'+rankName+'</div><button class="btn btn-primary" onclick="this.closest(\'.rankup-overlay\').remove()">Отлично! 🎉</button></div>';document.body.appendChild(o)}
+
+// ── МИНИ-ЧАТ БРИГАДЫ ──
+let chatMessages = [];
+const CHAT_STORAGE_KEY = 'vsh_chat_msgs';
+
+function loadChat() {
+  try {
+    const saved = localStorage.getItem(CHAT_STORAGE_KEY);
+    if (saved) chatMessages = JSON.parse(saved);
+  } catch(e) {}
+  renderChat();
+}
+
+function renderChat() {
+  const container = document.getElementById('chat-messages');
+  if (!chatMessages.length) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;font-size:12px;color:var(--muted)">Чат пуст. Напишите первое сообщение!</div>';
+    return;
+  }
+  const myId = String(currentWorker?.id || '');
+  container.innerHTML = chatMessages.slice(-50).map(m => {
+    const isMine = String(m.uid) === myId;
+    return '<div class="chat-msg ' + (isMine ? 'mine' : 'other') + '">'
+      + (isMine ? '' : '<div class="chat-msg-name">' + escapeHtml(m.name) + '</div>')
+      + escapeHtml(m.text)
+      + '<div class="chat-msg-time">' + m.time + '</div></div>';
+  }).join('');
+  container.scrollTop = container.scrollHeight;
+}
+
+function sendChatMsg() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text || !currentWorker) return;
+  const now = new Date();
+  const timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  chatMessages.push({
+    uid: currentWorker.id,
+    name: currentWorker.name || 'Рабочий',
+    text: text,
+    time: timeStr
+  });
+  // Храним последние 100 сообщений
+  if (chatMessages.length > 100) chatMessages = chatMessages.slice(-100);
+  try { localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(chatMessages)); } catch(e) {}
+  input.value = '';
+  renderChat();
+}
+
+// Enter отправляет сообщение
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && document.activeElement?.id === 'chat-input') {
+    e.preventDefault();
+    sendChatMsg();
+  }
+});
+
+// ── РЕФЕРАЛЬНЫЙ КОД РАБОЧЕГО ──
+function generateWorkerRefCode() {
+  if (!currentWorker) return '—';
+  // Простой код на основе ID
+  const id = String(currentWorker.id);
+  return 'VSH-W-' + id.slice(-4);
+}
+
+function copyWorkerRef() {
+  const code = document.getElementById('worker-ref-code').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    showToast('📋 Код скопирован: ' + code, 'success');
+  }).catch(() => {
+    showToast('Код: ' + code, '');
+  });
+}
 
 // INIT
 window.addEventListener('load',()=>{setTimeout(()=>{document.getElementById('splash').classList.add('hidden');document.getElementById('auth-page').classList.remove('hidden')},1800)});
