@@ -52,14 +52,59 @@ async function initDB() {
   if (!existing.includes('phone')) await pool.query(`ALTER TABLE orders ADD COLUMN phone TEXT DEFAULT ''`);
 }
 
+const ADMIN_SECRET = process.env.ADMIN_SECRET || '';
+const ALLOWED_ORIGINS = [
+  'https://mini-appsvsh.vercel.app',
+  'https://mini-appsvsh.vercel.app/',
+];
+
+// Rate limiting (в памяти — сбрасывается при рестарте serverless, но достаточно для защиты от ботов)
+const rateLimitMap = new Map();
+function checkRateLimit(key, maxPerHour = 3) {
+  const now = Date.now();
+  const windowMs = 3600000; // 1 час
+  if (!rateLimitMap.has(key)) rateLimitMap.set(key, []);
+  const timestamps = rateLimitMap.get(key).filter(t => now - t < windowMs);
+  timestamps.push(now);
+  rateLimitMap.set(key, timestamps);
+  return timestamps.length <= maxPerHour;
+}
+
+// Санитизация — убираем HTML теги и опасные символы
+function sanitize(str) {
+  if (!str) return '';
+  return String(str).replace(/<[^>]*>/g, '').replace(/['"`;\\]/g, '').trim().slice(0, 500);
+}
+
+// Валидация телефона
+function isValidPhone(phone) {
+  if (!phone) return false;
+  const clean = phone.replace(/\D/g, '');
+  return clean.length >= 10 && clean.length <= 15;
+}
+
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // CORS — только наш домен
+  const origin = req.headers.origin || '';
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGINS[0]);
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Admin-Secret');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
     await initDB();
+
+    // ── Проверка ADMIN_SECRET для защищённых операций ──
+    if (req.method === 'DELETE' || req.method === 'PATCH') {
+      const secret = req.headers['x-admin-secret'] || req.body?.admin_secret || '';
+      if (ADMIN_SECRET && secret !== ADMIN_SECRET) {
+        return res.status(403).json({ error: 'Forbidden: invalid admin secret' });
+      }
+    }
 
     // ── GET — список заказов ──
     if (req.method === 'GET') {
@@ -111,7 +156,45 @@ export default async function handler(req, res) {
       );
 
       if (result.rowCount === 0) return res.status(404).json({ error: 'Order not found' });
-      return res.status(200).json({ success: true, order: result.rows[0] });
+
+      const updatedOrder = result.rows[0];
+
+      // Если заявка только что стала published — рассылаем рабочим
+      if (status === 'published' && updatedOrder.status === 'published') {
+        try {
+          const workersResult = await pool.query('SELECT id FROM workers');
+          for (const worker of workersResult.rows) {
+            try {
+              const msgText = `🔥 <b>НОВАЯ ЗАЯВКА №${updatedOrder.id}</b>\n\n` +
+                `📍 ${updatedOrder.city || 'Октябрьский'}\n` +
+                `🔧 ${updatedOrder.service || updatedOrder.task || 'Задача'}\n` +
+                `🏠 ${updatedOrder.address || ''}\n` +
+                `👷 Рабочих: ${updatedOrder.workers_needed || 1}\n` +
+                `\nОткройте приложение чтобы принять заказ!`;
+
+              await fetch(`${BOT_API}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  chat_id: worker.id,
+                  text: msgText,
+                  parse_mode: 'HTML',
+                  reply_markup: JSON.stringify({
+                    inline_keyboard: [[{
+                      text: '🚀 Открыть VSH Service',
+                      web_app: { url: 'https://mini-appsvsh.vercel.app' }
+                    }]]
+                  })
+                })
+              });
+            } catch (e) { /* пропускаем */ }
+          }
+        } catch (e) {
+          console.error('PATCH broadcast error:', e.message);
+        }
+      }
+
+      return res.status(200).json({ success: true, order: updatedOrder });
     }
 
     // ── POST ──
@@ -160,19 +243,79 @@ export default async function handler(req, res) {
           [service || task || '', address || '', phone || '', city || 'Октябрьский',
            client_price || 0, worker_price || 0, margin || 0, workers_needed || 1, comment || '']
         );
-        return res.status(200).json({ success: true, orderId: result.rows[0].id });
+        const orderId = result.rows[0].id;
+
+        // Рассылка уведомлений всем рабочим через Telegram Bot API
+        try {
+          const workersResult = await pool.query('SELECT id FROM workers');
+          for (const worker of workersResult.rows) {
+            try {
+              const msgText = `🔥 <b>НОВАЯ ЗАЯВКА №${orderId}</b>\n\n` +
+                `📍 ${city || 'Октябрьский'}\n` +
+                `🔧 ${service || task}\n` +
+                `🏠 ${address}\n` +
+                `👷 Рабочих: ${workers_needed || 1}\n` +
+                (comment ? `💬 ${comment}\n` : '') +
+                `\nОткройте приложение чтобы принять заказ!`;
+
+              await fetch(`${BOT_API}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  chat_id: worker.id,
+                  text: msgText,
+                  parse_mode: 'HTML',
+                  reply_markup: JSON.stringify({
+                    inline_keyboard: [[{
+                      text: '🚀 Открыть VSH Service',
+                      web_app: { url: 'https://mini-appsvsh.vercel.app' }
+                    }]]
+                  })
+                })
+              });
+            } catch (e) { /* рабочий мог заблокировать бота */ }
+          }
+        } catch (e) {
+          console.error('Workers broadcast error:', e.message);
+        }
+
+        return res.status(200).json({ success: true, orderId });
       } else {
         // Заявка от заказчика (с сайта)
+
+        // Валидация обязательных полей
+        if (!task || !sanitize(task)) {
+          return res.status(400).json({ error: 'Опишите задачу' });
+        }
+        if (!phone || !isValidPhone(phone)) {
+          return res.status(400).json({ error: 'Введите корректный номер телефона' });
+        }
+        if (!address || !sanitize(address)) {
+          return res.status(400).json({ error: 'Укажите адрес' });
+        }
+
+        // Rate limiting: макс 3 заявки в час с одного телефона
+        const cleanPhone = phone.replace(/\D/g, '');
+        if (!checkRateLimit('phone:' + cleanPhone, 3)) {
+          return res.status(429).json({ error: 'Слишком много заявок. Попробуйте через час.' });
+        }
+
+        // Санитизация
+        const safeName = sanitize(name);
+        const safeTask = sanitize(task);
+        const safeAddress = sanitize(address);
+        const safeCity = sanitize(city) || 'Октябрьский';
+
         const result = await pool.query(
-          `INSERT INTO orders (name, address, task, phone, city, status)
-           VALUES ($1,$2,$3,$4,$5,'waiting_admin') RETURNING id`,
-          [name || '', address || '', task || '', phone || '', city || 'Октябрьский']
+          `INSERT INTO orders (name, address, task, phone, city, service, status)
+           VALUES ($1,$2,$3,$4,$5,$6,'waiting_admin') RETURNING id`,
+          [safeName, safeAddress, safeTask, cleanPhone, safeCity, sanitize(service) || safeTask]
         );
         const orderId = result.rows[0].id;
         try {
           await sendTG(ADMIN_ID,
             `🔔 <b>НОВАЯ ЗАЯВКА №${orderId} С САЙТА</b>\n\n` +
-            `👤 ${name}\n📍 ${city}, ${address}\n🔧 ${task}\n📞 ${phone}`,
+            `👤 ${safeName}\n📍 ${safeCity}, ${safeAddress}\n🔧 ${safeTask}\n📞 ${cleanPhone}`,
             { inline_keyboard: [[
               { text: '✅ ОДОБРИТЬ', callback_data: `approve:${orderId}` },
               { text: '❌ ОТКЛОНИТЬ', callback_data: `reject:${orderId}` }
