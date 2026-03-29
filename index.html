@@ -537,6 +537,7 @@ if (tg) { tg.ready(); tg.expand(); }
 const API = 'https://mini-appsvsh.vercel.app';
 const PIN = '2026';
 const ADMIN_ID = 7693616720;
+const ADMIN_SECRET = 'vsh2026secure'; // Должен совпадать с ADMIN_SECRET в Vercel env
 
 const RANKS = [
   {name:'🔩 Новобранец',icon:'🔩',min:0},{name:'🪛 Подмастерье',icon:'🪛',min:3},
@@ -575,9 +576,19 @@ function closeModal(id){document.getElementById(id).classList.add('hidden');if(r
 
 async function apiCall(method, endpoint, body) {
   const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  // Добавляем ADMIN_SECRET для защищённых операций
+  if (method === 'DELETE' || method === 'PATCH') {
+    opts.headers['X-Admin-Secret'] = ADMIN_SECRET;
+  }
   if (body) opts.body = JSON.stringify(body);
   try { const r = await fetch(API + endpoint, opts); return await r.json(); }
   catch (e) { return { error: e.message }; }
+}
+
+// Защита от XSS — экранирование HTML
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // PIN
@@ -647,12 +658,12 @@ async function loadOrders(){
     div.innerHTML=
       '<div class="order-top"><div>'
       +'<div class="order-category '+catClass+'">'+catLabel+'</div>'
-      +'<div class="order-city'+(urgent?' urgent-tag':'')+'">'+(urgent?'🔥 СРОЧНАЯ':(order.city||'Октябрьский'))+'</div>'
-      +'<div class="order-title">'+(order.service||order.task||'Задача')+'</div></div>'
+      +'<div class="order-city'+(urgent?' urgent-tag':'')+'">'+(urgent?'🔥 СРОЧНАЯ':escapeHtml(order.city||'Октябрьский'))+'</div>'
+      +'<div class="order-title">'+escapeHtml(order.service||order.task||'Задача')+'</div></div>'
       +'<div class="order-time">'+timeAgo(order.created_at)+'</div></div>'
-      +'<div class="order-meta"><div class="meta-tag">📍 '+(order.address||'—')+'</div>'
+      +'<div class="order-meta"><div class="meta-tag">📍 '+escapeHtml(order.address||'—')+'</div>'
       +'<div class="meta-tag">👷 '+(order.workers_needed||1)+' чел.</div>'
-      +(order.comment?'<div class="meta-tag">💬 '+order.comment.slice(0,30)+(order.comment.length>30?'...':'')+'</div>':'')+'</div>'
+      +(order.comment?'<div class="meta-tag">💬 '+escapeHtml(order.comment.slice(0,30))+(order.comment.length>30?'...':'')+'</div>':'')+'</div>'
       +'<div class="order-phone-lock">🔒 Контакт заказчика откроется после принятия</div>'
       +'<button class="btn btn-primary" data-oid="'+order.id+'">✅ Принять заявку</button>';
     div.querySelector('button').addEventListener('click',()=>openOrderModal(order));
