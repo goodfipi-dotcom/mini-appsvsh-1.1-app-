@@ -1414,61 +1414,8 @@ async function giveStars(){
 
 function showRankUp(rankName,icon){const o=document.createElement('div');o.className='rankup-overlay';o.innerHTML='<div class="rankup-card"><div class="rankup-icon">'+icon+'</div><div class="rankup-title">НОВОЕ ЗВАНИЕ!</div><div class="rankup-rank">'+rankName+'</div><button class="btn btn-primary" onclick="this.closest(\'.rankup-overlay\').remove()">Отлично! 🎉</button></div>';document.body.appendChild(o)}
 
-// ── МИНИ-ЧАТ БРИГАДЫ ──
-let chatMessages = [];
-const CHAT_STORAGE_KEY = 'vsh_chat_msgs';
-
-function loadChat() {
-  try {
-    const saved = localStorage.getItem(CHAT_STORAGE_KEY);
-    if (saved) chatMessages = JSON.parse(saved);
-  } catch(e) {}
-  renderChat();
-}
-
-function renderChat() {
-  const container = document.getElementById('chat-messages');
-  if (!chatMessages.length) {
-    container.innerHTML = '<div style="text-align:center;padding:40px;font-size:12px;color:var(--muted)">Чат пуст. Напишите первое сообщение!</div>';
-    return;
-  }
-  const myId = String(currentWorker?.id || '');
-  container.innerHTML = chatMessages.slice(-50).map(m => {
-    const isMine = String(m.uid) === myId;
-    return '<div class="chat-msg ' + (isMine ? 'mine' : 'other') + '">'
-      + (isMine ? '' : '<div class="chat-msg-name">' + escapeHtml(m.name) + '</div>')
-      + escapeHtml(m.text)
-      + '<div class="chat-msg-time">' + m.time + '</div></div>';
-  }).join('');
-  container.scrollTop = container.scrollHeight;
-}
-
-function sendChatMsg() {
-  const input = document.getElementById('chat-input');
-  const text = input.value.trim();
-  if (!text || !currentWorker) return;
-  const now = new Date();
-  const timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-  chatMessages.push({
-    uid: currentWorker.id,
-    name: currentWorker.name || 'Рабочий',
-    text: text,
-    time: timeStr
-  });
-  // Храним последние 100 сообщений
-  if (chatMessages.length > 100) chatMessages = chatMessages.slice(-100);
-  try { localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(chatMessages)); } catch(e) {}
-  input.value = '';
-  renderChat();
-}
-
-// Enter отправляет сообщение
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && document.activeElement?.id === 'chat-input') {
-    e.preventDefault();
-    sendChatMsg();
-  }
-});
+// ── ЧАТ БРИГАДЫ (серверный, общий для всех) ──
+// v1 убран — используется v2 ниже с серверным API /api/chat
 
 // ── МИНИ-ЧАТ v2 ──
 // Требования: общий чат между людьми, аватары, вложения, редактирование/удаление (для себя и для всех).
