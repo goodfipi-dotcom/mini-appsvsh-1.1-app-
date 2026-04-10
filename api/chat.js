@@ -6,7 +6,7 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-const ADMIN_ID = process.env.ADMIN_ID || '7693616720';
+const ADMIN_ID = process.env.ADMIN_ID || '';
 const ADMIN_SECRET = process.env.ADMIN_SECRET || '';
 
 async function initChatDB() {

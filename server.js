@@ -12,9 +12,10 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-// Твои данные, которые ты предоставил
-const TG_TOKEN = '8174571129:AAEZqfwEWUMDluztgkuqHkBeeuLlcnMTX58';
-const ADMIN_ID = '7693616720';
+// Токены берутся ТОЛЬКО из переменных окружения (Vercel → Settings → Environment Variables).
+// Никогда не коммитить реальные значения в репозиторий — Telegram сканирует GitHub и отзывает утёкшие токены.
+const TG_TOKEN = process.env.TG_TOKEN;
+const ADMIN_ID = process.env.ADMIN_ID;
 
 // Создание таблицы в базе данных
 async function initDB() {
